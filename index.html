@@ -1,30 +1,390 @@
-<html>
-<audio id="dynamicAudio" controls preload="auto"></audio>
-<script>
-  function getUrlParameter(name) {
-    const regex = new RegExp('[?&]' + name + '=([^&#]*)');
-    const results = regex.exec(window.location.search);
-    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-  }
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>失传媒体中文维基功能导航站 - 记录与寻找失落的媒体</title>
+    <style>
+        :root {
+            /* 基础变量引用 */
+            --header-title: "Lost Media";
+            --header-subtitle: "失传媒体中文维基功能导航站";
+            --rename-option: "注意：失传媒体维基上暂时禁止用户自删页面，您可以将其移动至deleted分类中以归档。";
+            --logo-image: url("https://lostmedia.wikidot.com/local--files/start/cn-logo-2.svg") !important;
+            
+            /* 线程颜色 */
+            --thread-accent-color: var(--background-color);
+            --dark-accent: var(--dark-color-2);
 
-  const url = getUrlParameter('url');
-  const page = getUrlParameter('page') || '%%fullname%%';
-  const audio = document.getElementById('dynamicAudio');
-  const isFullUrl = /^https?:\/\//i.test(url);
+            --bb-white:var(--background-color);
+            --bb-black:var(--text-color);
 
-  //构建音频
-  if (url) {
-    audio.src = isFullUrl ? url : `https://lostmedia.wdfiles.com/local--files/${page}/${url}`;
-  } else {
-    console.error('未提供音频URL参数');
-    audio.outerHTML = '<div class="audio-error">错误：未提供音频URL</div>';
-  }
+            --link-color: 100, 100, 200;
+            --hover-link-color: 61, 172, 214;
+            --visited-link-color: 130, 130, 230;
+            --newpage-color: 50, 50, 220;
 
-  audio.addEventListener('error', () => {
-    console.error('音频加载失败:', audio.error);
-    if (!audio.error) {
-      audio.outerHTML = '<div class="audio-error">错误：无效的音频URL</div>';
-    }
-  });
-</script>
+            --text-color: 35, 35, 38;
+            --background-color: 252, 252, 252;
+            --light-color-2: 240, 240, 244;
+            --dark-color-2: 229, 229, 238;
+            --dark-color-3: 50, 50, 51;
+            --dark-color-4: var(--dark-color-3);
+            --general-light-background-color: var(--light-color-2);
+            --general-light-text-color: var(--text-color);
+            --general-medium-background-color: var(--dark-color-2);
+            --general-medium-text-color: var(--text-color);
+            --general-dark-background-color: var(--dark-color-3);
+            --general-dark-text-color: 255, 255, 255; /* 修改为白色文本 */
+            --header-background-bottom: var(--light-color-2);
+            --header-background-top: var(--light-color-2), 0.8;
+            --header-extra-background-image: none;
+            --header-text-color: var(--dark-color-3);
+            --header-text-shadow-color: 0, 0, 0, 0;
+            --topbar-text-color: 255, 255, 255; /* 修改为白色文本 */
+            --topbar-hover-text-color: 61, 172, 214;
+            --header-username-color: var(--dark-color-3);
+            --account-button-text-color: var(--light-color-2);
+            --account-button-hover-text-color: var(--text-color);
+            --account-button-background-color: var(--dark-color-3);
+            --account-drop-hover-background-color: var(--light-color-1);
+            --page-title-border-color: var(--dark-color-2);
+            --sidebar-title-background-color: var(--dark-color-2);
+            --sidebar-title-text-color: var(--dark-color-3);
+            --sidebar-title-shadow-color: 0, 0, 0, 0;
+            --sidebar-media-background-color: var(--light-color-2);
+            --sidebar-hover-background-color: var(--light-color-2);
+            --hr-color: var(--dark-color-2);
+            --popup-loading-color: var(--dark-color-3);
+            --scrollbar-color: var(--dark-color-3);
+            --scrollbar-background-color: var(--light-color-2);
+            --page-option-background-color: var(--light-color-2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: rgb(var(--background-color));
+            color: rgb(var(--text-color));
+            line-height: 1.6;
+        }
+
+        /* 头部样式 */
+        .header {
+            background: linear-gradient(rgba(var(--header-background-top)), rgb(var(--header-background-bottom)));
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 1px solid rgb(var(--hr-color));
+        }
+
+        .logo {
+            width: 180px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            color: rgb(var(--header-text-color));
+            text-shadow: rgba(var(--header-text-shadow-color)) 1px 1px 3px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-subtitle {
+            font-size: 1.2rem;
+            color: rgb(var(--header-text-color));
+            font-weight: normal;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background-color: rgb(var(--dark-color-3));
+            padding: 0.8rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .navbar a {
+            color: rgb(var(--topbar-text-color)); /* 使用白色文本 */
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: rgb(var(--hover-link-color));
+        }
+
+        /* 主内容区 */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 2rem;
+            padding: 0 2rem;
+        }
+
+        .main-content {
+            background-color: rgb(var(--bb-white));
+            padding: 2rem;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgb(var(--page-title-border-color));
+        }
+
+        .intro-text {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        /* 特色内容区 */
+        .featured {
+            margin: 2rem 0;
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .featured-item {
+            background-color: rgb(var(--light-color-2));
+            border-radius: 4px;
+            padding: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .featured-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .featured-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .featured-desc {
+            font-size: 0.95rem;
+            color: rgb(var(--text-color));
+            opacity: 0.9;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-box {
+            background-color: rgb(var(--sidebar-media-background-color));
+            padding: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .sidebar-title {
+            background-color: rgb(var(--sidebar-title-background-color));
+            color: rgb(var(--sidebar-title-text-color));
+            padding: 0.8rem;
+            margin: -1.5rem -1.5rem 1rem;
+            font-size: 1.1rem;
+            border-radius: 4px 4px 0 0;
+            text-shadow: rgba(var(--sidebar-title-shadow-color)) 1px 1px 2px;
+        }
+
+        .sidebar-links {
+            list-style: none;
+        }
+
+        .sidebar-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .sidebar-links a {
+            color: rgb(var(--link-color));
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .sidebar-links a:hover {
+            color: rgb(var(--hover-link-color));
+            text-decoration: underline;
+        }
+
+        .notice {
+            background-color: rgba(var(--newpage-color), 0.1);
+            border-left: 4px solid rgb(var(--newpage-color));
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* 页脚 */
+        .footer {
+            background-color: rgb(var(--dark-color-3));
+            color: rgb(var(--general-dark-text-color)); /* 使用白色文本 */
+            padding: 3rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-column h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: rgb(var(--general-dark-text-color)); /* 使用白色文本 */
+            opacity: 0.8;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(var(--general-dark-text-color), 0.2); /* 使用白色边框 */
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* 特殊提示样式 */
+        .rename-notice {
+            background-color: rgba(var(--link-color), 0.1);
+            padding: 1rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            border-left: 3px solid rgb(var(--link-color));
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar-container {
+                flex-wrap: wrap;
+            }
+
+            .featured-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部区域 -->
+    <header class="header">
+        <img src="https://lostmedia.wikidot.com/local--files/start/cn-logo-2.svg" alt="失传媒体中文维基Logo" class="logo">
+        <h1 class="header-title">Lost Media</h1>
+        <p class="header-subtitle">失传媒体中文维基功能导航站</p>
+    </header>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/">首页</a>
+            <a href="https://lostmedia.wikidot.com/all">媒体条目</a>
+            <a href="https://lostmedia.wikidot.com/forum/c-7851843/">求助区</a>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        <main class="main-content">
+            <h2 class="section-title">欢迎来到失传媒体中文维基功能导航站</h2>
+            <p class="intro-text">
+                失传媒体（Lost Media），是指一些曾经存在但因各种原因在公共领域难以获取或完全消失的媒体内容。包括视频、游戏、音频、图像、文本等。这些东西奇怪而又吸引人的一点在于，它们有的的确存在过，但是因某些原因遗失，也有的源自某人胡编乱造。一些失传媒体却又不是完全失传，很多失传媒体仅仅只是作者（可以为各种企业、单位、及个人）曾短暂公开过后因种种原因不愿再次公开，或资源遗落到某一收藏家之手，该收藏家因某种原因不愿公开，而导致的失传。
+            </p>
+            <p class="intro-text">
+                此站（github.lostmeida.cn）为功能跳转站。
+            </p>
+
+            <div class="featured">
+                <h3 class="section-title">代码片段</h3>
+                <div class="featured-grid">
+                    <div class="featured-item">
+                        <h4 class="featured-title">插入音频iframe</h4>
+                        <p class="featured-desc">优化站内插入音频组件</p>
+                        <a href="https://github.lostmedia.cn/lostmedia-cn-music/" style="color: rgb(var(--link-color)); display: inline-block; margin-top: 0.5rem;">查看详情 →</a>
+                    </div>
+                    <div class="featured-item">
+                        <h4 class="featured-title">标题搜索</h4>
+                        <p class="featured-desc">快速搜索站内条目</p>
+                        <a href="https://lostmedia.wikidot.com/search:title" style="color: rgb(var(--link-color)); display: inline-block; margin-top: 0.5rem;">前往搜索 →</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="sidebar-box">
+                <h3 class="sidebar-title">功能导航</h3>
+                <ul class="sidebar-links">
+                    <li><a href="https://lostmedia.wikidot.com/">回到主站</a></li>
+                    <li><a href="https://github.lostmedia.cn/lostmedia-cn-music/">插入音频iframe</a></li>
+                    <li><a href="https://lostmedia.wikidot.com/search:title">标题搜索</a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-box">
+                <h3 class="sidebar-title">加入我们</h3>
+                <p>无论你是媒体研究者、收藏爱好者还是普通用户，都可以参与到失传媒体的记录与寻找中。</p>
+                <a href="https://lostmedia.wikidot.com/system:join" style="background-color: rgb(var(--dark-color-3)); color: rgb(var(--light-color-2)); padding: 0.6rem 1rem; border-radius: 4px; text-decoration: none; display: inline-block; margin-top: 1rem;">加入维基</a>
+            </div>
+        </aside>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+            © 2024~2025 失传媒体中文维基功能导航站 
+    </footer>
+</body>
 </html>
