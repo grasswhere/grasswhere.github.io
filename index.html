@@ -4,387 +4,345 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>失传媒体中文维基功能导航站</title>
-    <style>
-        :root {
-            /* 基础变量引用 */
-            --header-title: "Lost Media";
-            --header-subtitle: "失传媒体中文维基功能导航站";
-            --rename-option: "注意：失传媒体维基上暂时禁止用户自删页面，您可以将其移动至deleted分类中以归档。";
-            --logo-image: url("https://lostmedia.wikidot.com/local--files/start/cn-logo-2.svg") !important;
-            
-            /* 线程颜色 */
-            --thread-accent-color: var(--background-color);
-            --dark-accent: var(--dark-color-2);
-
-            --bb-white:var(--background-color);
-            --bb-black:var(--text-color);
-
-            --link-color: 100, 100, 200;
-            --hover-link-color: 61, 172, 214;
-            --visited-link-color: 130, 130, 230;
-            --newpage-color: 50, 50, 220;
-
-            --text-color: 35, 35, 38;
-            --background-color: 252, 252, 252;
-            --light-color-2: 240, 240, 244;
-            --dark-color-2: 229, 229, 238;
-            --dark-color-3: 50, 50, 51;
-            --dark-color-4: var(--dark-color-3);
-            --general-light-background-color: var(--light-color-2);
-            --general-light-text-color: var(--text-color);
-            --general-medium-background-color: var(--dark-color-2);
-            --general-medium-text-color: var(--text-color);
-            --general-dark-background-color: var(--dark-color-3);
-            --general-dark-text-color: 255, 255, 255; /* 修改为白色文本 */
-            --header-background-bottom: var(--light-color-2);
-            --header-background-top: var(--light-color-2), 0.8;
-            --header-extra-background-image: none;
-            --header-text-color: var(--dark-color-3);
-            --header-text-shadow-color: 0, 0, 0, 0;
-            --topbar-text-color: 255, 255, 255; /* 修改为白色文本 */
-            --topbar-hover-text-color: 61, 172, 214;
-            --header-username-color: var(--dark-color-3);
-            --account-button-text-color: var(--light-color-2);
-            --account-button-hover-text-color: var(--text-color);
-            --account-button-background-color: var(--dark-color-3);
-            --account-drop-hover-background-color: var(--light-color-1);
-            --page-title-border-color: var(--dark-color-2);
-            --sidebar-title-background-color: var(--dark-color-2);
-            --sidebar-title-text-color: var(--dark-color-3);
-            --sidebar-title-shadow-color: 0, 0, 0, 0;
-            --sidebar-media-background-color: var(--light-color-2);
-            --sidebar-hover-background-color: var(--light-color-2);
-            --hr-color: var(--dark-color-2);
-            --popup-loading-color: var(--dark-color-3);
-            --scrollbar-color: var(--dark-color-3);
-            --scrollbar-background-color: var(--light-color-2);
-            --page-option-background-color: var(--light-color-2);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: rgb(var(--background-color));
-            color: rgb(var(--text-color));
-            line-height: 1.6;
-        }
-
-        /* 头部样式 */
-        .header {
-            background: linear-gradient(rgba(var(--header-background-top)), rgb(var(--header-background-bottom)));
-            padding: 2rem 0;
-            text-align: center;
-            border-bottom: 1px solid rgb(var(--hr-color));
-        }
-
-        .logo {
-            width: 180px;
-            height: auto;
-            margin-bottom: 1rem;
-        }
-
-        .header-title {
-            font-size: 2.5rem;
-            color: rgb(var(--header-text-color));
-            text-shadow: rgba(var(--header-text-shadow-color)) 1px 1px 3px;
-            margin-bottom: 0.5rem;
-        }
-
-        .header-subtitle {
-            font-size: 1.2rem;
-            color: rgb(var(--header-text-color));
-            font-weight: normal;
-        }
-
-        /* 导航栏 */
-        .navbar {
-            background-color: rgb(var(--dark-color-3));
-            padding: 0.8rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .navbar-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            gap: 2rem;
-        }
-
-        .navbar a {
-            color: rgb(var(--topbar-text-color)); /* 使用白色文本 */
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .navbar a:hover {
-            color: rgb(var(--hover-link-color));
-        }
-
-        /* 主内容区 */
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            display: grid;
-            grid-template-columns: 3fr 1fr;
-            gap: 2rem;
-            padding: 0 2rem;
-        }
-
-        .main-content {
-            background-color: rgb(var(--bb-white));
-            padding: 2rem;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid rgb(var(--page-title-border-color));
-        }
-
-        .intro-text {
-            margin-bottom: 2rem;
-            font-size: 1.1rem;
-        }
-
-        /* 特色内容区 */
-        .featured {
-            margin: 2rem 0;
-        }
-
-        .featured-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .featured-item {
-            background-color: rgb(var(--light-color-2));
-            border-radius: 4px;
-            padding: 1rem;
-            transition: transform 0.3s;
-        }
-
-        .featured-item:hover {
-            transform: translateY(-5px);
-        }
-
-        .featured-title {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .featured-desc {
-            font-size: 0.95rem;
-            color: rgb(var(--text-color));
-            opacity: 0.9;
-        }
-
-        /* 侧边栏 */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .sidebar-box {
-            background-color: rgb(var(--sidebar-media-background-color));
-            padding: 1.5rem;
-            border-radius: 4px;
-        }
-
-        .sidebar-title {
-            background-color: rgb(var(--sidebar-title-background-color));
-            color: rgb(var(--sidebar-title-text-color));
-            padding: 0.8rem;
-            margin: -1.5rem -1.5rem 1rem;
-            font-size: 1.1rem;
-            border-radius: 4px 4px 0 0;
-            text-shadow: rgba(var(--sidebar-title-shadow-color)) 1px 1px 2px;
-        }
-
-        .sidebar-links {
-            list-style: none;
-        }
-
-        .sidebar-links li {
-            margin-bottom: 0.8rem;
-        }
-
-        .sidebar-links a {
-            color: rgb(var(--link-color));
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .sidebar-links a:hover {
-            color: rgb(var(--hover-link-color));
-            text-decoration: underline;
-        }
-
-        .notice {
-            background-color: rgba(var(--newpage-color), 0.1);
-            border-left: 4px solid rgb(var(--newpage-color));
-            padding: 1rem;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-        }
-
-        /* 页脚 */
-        .footer {
-            background-color: rgb(var(--dark-color-3));
-            color: rgb(var(--general-dark-text-color)); /* 使用白色文本 */
-            padding: 3rem 0;
-            margin-top: 3rem;
-        }
-
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-        }
-
-        .footer-column h3 {
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.8rem;
-        }
-
-        .footer-links a {
-            color: rgb(var(--general-dark-text-color)); /* 使用白色文本 */
-            opacity: 0.8;
-            text-decoration: none;
-            transition: opacity 0.3s;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            margin-top: 2rem;
-            border-top: 1px solid rgba(var(--general-dark-text-color), 0.2); /* 使用白色边框 */
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-
-        /* 特殊提示样式 */
-        .rename-notice {
-            background-color: rgba(var(--link-color), 0.1);
-            padding: 1rem;
-            margin: 2rem 0;
-            border-radius: 4px;
-            font-size: 0.95rem;
-            border-left: 3px solid rgb(var(--link-color));
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF5E5B',
+                        dark: '#121212',
+                        'dark-light': '#1E1E1E',
+                        'gray-custom': '#8A8A8A',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
             }
-
-            .navbar-container {
-                flex-wrap: wrap;
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
             }
-
-            .featured-grid {
-                grid-template-columns: 1fr;
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-hover {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .gradient-overlay {
+                background: linear-gradient(180deg, rgba(18,18,18,0) 0%, rgba(18,18,18,1) 100%);
+            }
+            .sidebar-title {
+                @apply bg-gray-200 text-dark py-3 px-4 rounded-t-lg font-semibold;
+            }
+            .sidebar-link {
+                @apply text-primary hover:text-primary/80 transition-colors;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-all shadow-lg hover:shadow-primary/20;
+            }
+            .btn-outline {
+                @apply bg-transparent border border-gray-600 hover:border-primary text-gray-200 hover:text-white font-medium rounded-lg transition-all;
+            }
+            .fade-in {
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            }
+            .fade-in.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .img-stroke {
+                filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.8)) 
+                        drop-shadow(0 0 1px rgba(255, 255, 255, 0.8)) 
+                        drop-shadow(0 0 1px rgba(255, 255, 255, 0.8));
             }
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <!-- 头部区域 -->
-    <header class="header">
-        <img src="https://lostmedia.wikidot.com/local--files/start/cn-logo-2.svg" alt="失传媒体中文维基Logo" class="logo">
-        <h1 class="header-title">Lost Media</h1>
-        <p class="header-subtitle">失传媒体中文维基功能导航站</p>
+<body class="bg-white text-dark font-inter min-h-screen flex flex-col">
+    <!-- 顶部导航 -->
+    <header class="bg-dark text-white py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="https://lostmedia.wikidot.com/" class="flex items-center">
+                <img src="https://lostmedia.wikidot.com/local--files/start/cn-logo-2.svg" alt="失传媒体中文维基 Logo" class="h-8 w-auto mr-2 img-stroke">
+                <span class="text-xl font-bold">失传媒体中文维基</span>
+            </a>
+            <a href="https://lostmedia.wikidot.com/" class="btn-primary px-4 py-2">
+                <i class="fa fa-arrow-right mr-2"></i>进入维基主站
+            </a>
+        </div>
     </header>
 
-    <!-- 导航栏 -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/">首页</a>
-            <a href="https://lostmedia.wikidot.com/all">媒体条目</a>
-            <a href="https://lostmedia.wikidot.com/forum/c-7851843/">求助区</a>
+    <section class="bg-gradient-to-br from-primary/5 to-primary/10 py-16">
+        <div class="container mx-auto px-4 text-center">
+            <img src="https://lostmedia.wikidot.com/local--files/start/cn-logo-2.svg" alt="失传媒体中文维基" class="mx-auto h-24 mb-6 img-stroke">
+            <h1 class="text-4xl font-bold text-dark mb-4">失传媒体中文维基</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                记录失传媒体
+            </p>
+            <div class="mt-8">
+                <a href="https://lostmedia.wikidot.com/" class="btn-primary px-8 py-3">
+                    <i class="fa fa-arrow-right mr-2"></i>进入维基主站
+                </a>
+            </div>
         </div>
-    </nav>
+    </section>
 
     <!-- 主内容区 -->
-    <div class="container">
-        <main class="main-content">
-            <h2 class="section-title">欢迎来到失传媒体中文维基功能导航站</h2>
-            <p class="intro-text">
-                失传媒体（Lost Media），是指一些曾经存在但因各种原因在公共领域难以获取或完全消失的媒体内容。包括视频、游戏、音频、图像、文本等。这些东西奇怪而又吸引人的一点在于，它们有的的确存在过，但是因某些原因遗失，也有的源自某人胡编乱造。一些失传媒体却又不是完全失传，很多失传媒体仅仅只是作者（可以为各种企业、单位、及个人）曾短暂公开过后因种种原因不愿再次公开，或资源遗落到某一收藏家之手，该收藏家因某种原因不愿公开，而导致的失传。
-            </p>
-            <p class="intro-text">
-                此站（github.lostmeida.cn）为功能跳转站。
-            </p>
-
-            <div class="featured">
-                <h3 class="section-title">代码片段</h3>
-                <div class="featured-grid">
-                    <div class="featured-item">
-                        <h4 class="featured-title">插入音频iframe</h4>
-                        <p class="featured-desc">优化站内插入音频组件</p>
-                        <a href="https://github.lostmedia.cn/lostmedia-cn-music/" style="color: rgb(var(--link-color)); display: inline-block; margin-top: 0.5rem;">查看详情 →</a>
+    <main class="flex-grow container mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧内容 -->
+            <div class="lg:col-span-2 space-y-8">
+                <section class="fade-in">
+                    <h2 class="text-2xl font-bold text-dark mb-6">关于失传媒体</h2>
+                    <div class="bg-white border border-gray-200 rounded-xl p-6">
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            失传媒体（Lost Media），是指一些曾经存在但因各种原因在公共领域难以获取或完全消失的媒体内容。包括视频、游戏、音频、图像、文本等。
+                        </p>
+                        <p class="text-gray-600 mb-4 leading-relaxed">
+                            这些东西奇怪而又吸引人的一点在于，它们有的的确存在过，但是因某些原因遗失，也有的源自某人胡编乱造。
+                        </p>
+                        <p class="text-gray-600 leading-relaxed">
+                            一些失传媒体却又不是完全失传，很多失传媒体仅仅只是作者（可以为各种企业、单位、及个人）曾短暂公开过后因种种原因不愿再次公开，或资源遗落到某一收藏家之手，该收藏家因某种原因不愿公开，而导致的失传。
+                        </p>
                     </div>
-                    <div class="featured-item">
-                        <h4 class="featured-title">标题搜索</h4>
-                        <p class="featured-desc">快速搜索站内条目</p>
-                        <a href="https://lostmedia.wikidot.com/search:title" style="color: rgb(var(--link-color)); display: inline-block; margin-top: 0.5rem;">前往搜索 →</a>
+                </section>
+                
+                <!-- 相关站点 -->
+                <section class="fade-in">
+                    <h2 class="text-2xl font-bold text-dark mb-6">相关站点</h2>
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- 相关站点1 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://lostmedia.wikidot.com/local--files/nav:side/LMW" alt="Lost Media Wiki" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">Lost Media Wiki</h3>
+                                    <a href="https://lostmediawiki.com/Home" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://lostmediawiki.com/Home
+                                    </a>
+                                </div>
+                                
+                                <!-- 相关站点2 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://lostmedia.wikidot.com/local--files/start/lostwave-org.png" alt="Lost Waves Wiki" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">Lost Waves Wiki</h3>
+                                    <a href="https://lostwaves.org/wiki/index.php/Main_Page" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://lostwaves.org/wiki/index.php/Main_Page
+                                    </a>
+                                </div>
+                                
+                                <!-- 相关站点3 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://lostmedia.wikidot.com/local--files/start/atwiki_logo_small.svg" alt="失传媒体日语维基" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">失传媒体日语维基</h3>
+                                    <a href="https://w.atwiki.jp/lostmediatranslation" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://w.atwiki.jp/lostmediatranslation
+                                    </a>
+                                </div>
+                                
+                                <!-- 相关站点4 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://static.miraheze.org/lostmediaruwiki/0/03/Logg1.svg" alt="失传媒体俄语维基" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">失传媒体俄语维基</h3>
+                                    <a href="https://lostmediawiki.ru/" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://lostmediawiki.ru/
+                                    </a>
+                                </div>
+                                
+                                <!-- 相关站点5 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://lostmedia.wikidot.com/local--files/nav:side/Fandom" alt="Lostwave's Finest Wiki" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">Lostwave's Finest Wiki</h3>
+                                    <a href="https://lostwaves-finest.fandom.com/wiki/Lostwave%27s_Finest_Wiki:Home" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://lostwaves-finest.fandom.com/wiki/...
+                                    </a>
+                                </div>
+                                
+                                <!-- 相关站点6 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://lostmedia.wikidot.com/local--files/nav:side/Fandom" alt="Lost Media Archive" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">Lost Media Archive</h3>
+                                    <a href="https://lostmediaarchive.fandom.com/wiki/Lost_Media_Archive" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://lostmediaarchive.fandom.com/...
+                                    </a>
+                                </div>
+                                
+                                <!-- 相关站点7 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://static.miraheze.org/vocalostwiki/1/12/Theme_Maintenance.png" alt="Vocalost Wiki" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">Vocalost Wiki</h3>
+                                    <a href="https://vocalost.miraheze.org/wiki/Main_Page" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://vocalost.miraheze.org/wiki/...
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 友情链接 -->
+                <section class="fade-in">
+                    <h2 class="text-2xl font-bold text-dark mb-6">友情链接</h2>
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <!-- 友情链接1 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://icebergcharts.com/static/favicon.png" alt="中文兔子洞冰山图" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">中文兔子洞冰山图</h3>
+                                    <a href="https://icebergcharts.com/i/Chinese_Oddities" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://icebergcharts.com/i/Chinese_Oddities
+                                    </a>
+                                </div>
+                                
+                                <!-- 友情链接2 -->
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 card-hover">
+                                    <img src="https://lostmedia.wikidot.com/local--files/start/lm-tieba.jpg" alt="失传媒体吧" class="w-16 h-16 mb-4 img-stroke">
+                                    <h3 class="text-lg font-semibold mb-1">失传媒体吧</h3>
+                                    <a href="https://tieba.baidu.com/f?kw=%E5%A4%B1%E4%BC%A0%E5%AA%92%E4%BD%93" target="_blank" class="text-primary hover:text-primary/80 text-sm break-all">
+                                        https://tieba.baidu.com/f?kw=失传媒体
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- 侧边栏 -->
+            <aside class="space-y-8">
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden fade-in">
+                    <div class="sidebar-title">
+                        <i class="fa fa-compass mr-2"></i>快速导航
+                    </div>
+                    <div class="p-6">
+                        <ul class="space-y-3">
+                            <li><a href="https://lostmedia.wikidot.com/" class="sidebar-link flex items-center"><i class="fa fa-home mr-2"></i> 回到主站</a></li>
+                            <li><a href="https://lostmedia.wikidot.com/all" class="sidebar-link flex items-center"><i class="fa fa-list mr-2"></i> 所有条目</a></li>
+                            <li><a href="https://lostmedia.wikidot.com/forum/c-7851843/" class="sidebar-link flex items-center"><i class="fa fa-comments mr-2"></i> 求助区</a></li>
+                        </ul>
                     </div>
                 </div>
-            </div>
-        </main>
-
-        <aside class="sidebar">
-            <div class="sidebar-box">
-                <h3 class="sidebar-title">功能导航</h3>
-                <ul class="sidebar-links">
-                    <li><a href="https://lostmedia.wikidot.com/">回到主站</a></li>
-                    <li><a href="https://github.lostmedia.cn/lostmedia-cn-music/">插入音频iframe</a></li>
-                    <li><a href="https://lostmedia.wikidot.com/search:title">标题搜索</a></li>
-                </ul>
-            </div>
-
-            <div class="sidebar-box">
-                <h3 class="sidebar-title">加入我们</h3>
-                <p>无论你是媒体研究者、收藏爱好者还是普通用户，都可以参与到失传媒体的记录与寻找中。</p>
-                <a href="https://lostmedia.wikidot.com/system:join" style="background-color: rgb(var(--dark-color-3)); color: rgb(var(--light-color-2)); padding: 0.6rem 1rem; border-radius: 4px; text-decoration: none; display: inline-block; margin-top: 1rem;">加入维基</a>
-            </div>
-        </aside>
-    </div>
+                
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden fade-in">
+                    <div class="sidebar-title">
+                        <i class="fa fa-users mr-2"></i>加入我们
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">
+                            无论你是媒体研究者、收藏爱好者还是普通用户，都可以参与到失传媒体的记录与寻找中。
+                        </p>
+            <a href="https://lostmedia.wikidot.com/system:join" class="btn-primary px-4 py-2">
+                <i class="fa fa-arrow-right mr-2"></i>加入网站
+            </a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
 
     <!-- 页脚 -->
-    <footer class="footer">
-            © 2024~2025 失传媒体中文维基功能导航站 
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="fade-in">
+                    <div class="flex items-center mb-4">
+                        <img src="https://lostmedia.wikidot.com/local--files/start/cn-logo-2.svg" alt="失传媒体中文维基 Logo" class="h-8 w-auto mr-2 img-stroke">
+                        <span class="text-xl font-bold">失传媒体中文维基</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">
+                        记录、探索那些曾经存在却难以寻觅的媒体内容，让更多人了解和参与寻找失传媒体的过程。
+                    </p>
+                    <div class="flex space-x-4">
+                        <!-- <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                            <i class="fa fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                            <i class="fa fa-discord"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                            <i class="fa fa-github"></i>
+                        </a> -->
+                    </div>
+                </div>
+                
+                <div class="fade-in">
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2">
+                        <li><a href="https://lostmedia.wikidot.com/" class="text-gray-400 hover:text-white transition-colors">首页</a></li>
+                        <li><a href="https://lostmedia.wikidot.com/all" class="text-gray-400 hover:text-white transition-colors">所有条目</a></li>
+                        <li><a href="https://lostmedia.wikidot.com/forum/c-7851843/" class="text-gray-400 hover:text-white transition-colors">求助区</a></li>
+                        <li><a href="https://lostmedia.wikidot.com/system:join" class="text-gray-400 hover:text-white transition-colors">加入我们</a></li>
+                    </ul>
+                </div>
+                
+                <div class="fade-in">
+                    <h3 class="text-lg font-semibold mb-4">资源</h3>
+                    <ul class="space-y-2">
+                        <li><a href="https://lostmedia.wikidot.com/guide" class="text-gray-400 hover:text-white transition-colors">指导目录</a></li>
+                        <li><a href="https://lostmedia.wikidot.com/article-guide" class="text-gray-400 hover:text-white transition-colors">编写指南</a></li>
+                        <li><a href="https://lostmedia.wikidot.com/wikidot-syntax" class="text-gray-400 hover:text-white transition-colors">语法指南</a></li>
+                        <li><a href="https://lostmedia.wikidot.com/group" class="text-gray-400 hover:text-white transition-colors">交流群组</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-10 pt-6 text-center text-gray-500 text-sm fade-in">
+                © 2024~2025 失传媒体中文维基
+            </div>
+        </div>
     </footer>
+
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // 滚动动画
+        function checkFadeIn() {
+            const elements = document.querySelectorAll('.fade-in');
+            
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (elementTop < windowHeight * 0.85) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+        
+        // 初始检查
+        window.addEventListener('load', checkFadeIn);
+        
+        // 滚动时检查
+        window.addEventListener('scroll', checkFadeIn);
+    </script>
 </body>
-</html>
+</html>    
