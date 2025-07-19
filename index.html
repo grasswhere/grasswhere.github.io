@@ -68,6 +68,21 @@
                         drop-shadow(0 0 1px rgba(255, 255, 255, 0.8)) 
                         drop-shadow(0 0 1px rgba(255, 255, 255, 0.8));
             }
+            .mobile-order-1 {
+                order: 1;
+            }
+            .mobile-order-2 {
+                order: 2;
+            }
+            .mobile-order-3 {
+                order: 3;
+            }
+            .mobile-order-4 {
+                order: 4;
+            }
+            .mobile-order-5 {
+                order: 5;
+            }
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -105,10 +120,11 @@
 
     <!-- 主内容区 -->
     <main class="flex-grow container mx-auto px-4 py-12">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="flex flex-col lg:grid lg:grid-cols-3 gap-8">
             <!-- 左侧内容 -->
-            <div class="lg:col-span-2 space-y-8">
-                <section class="fade-in">
+            <div class="lg:col-span-2 flex flex-col gap-8">
+                <!-- 关于失传媒体 - 移动端顺序1 -->
+                <section class="fade-in mobile-order-1">
                     <h2 class="text-2xl font-bold text-dark mb-6">关于失传媒体</h2>
                     <div class="bg-white border border-gray-200 rounded-xl p-6">
                         <p class="text-gray-600 mb-4 leading-relaxed">
@@ -123,8 +139,40 @@
                     </div>
                 </section>
                 
-                <!-- 相关站点 -->
-                <section class="fade-in">
+                <!-- 侧边栏内容在移动端显示 -->
+                <div class="lg:hidden flex flex-col gap-8">
+                    <!-- 快速导航 - 移动端顺序2 -->
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden fade-in mobile-order-2">
+                        <div class="sidebar-title">
+                            <i class="fa fa-compass mr-2"></i>快速导航
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3">
+                                <li><a href="https://lostmedia.wikidot.com/" class="sidebar-link flex items-center"><i class="fa fa-home mr-2"></i> 回到主站</a></li>
+                                <li><a href="https://lostmedia.wikidot.com/all" class="sidebar-link flex items-center"><i class="fa fa-list mr-2"></i> 所有条目</a></li>
+                                <li><a href="https://lostmedia.wikidot.com/forum/c-7851843/" class="sidebar-link flex items-center"><i class="fa fa-comments mr-2"></i> 求助区</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 加入我们 - 移动端顺序3 -->
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden fade-in mobile-order-3">
+                        <div class="sidebar-title">
+                            <i class="fa fa-users mr-2"></i>加入我们
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-600 mb-4">
+                                无论你是媒体研究者、收藏爱好者还是普通用户，都可以参与到失传媒体的记录与寻找中。
+                            </p>
+                <a href="https://lostmedia.wikidot.com/system:join" class="btn-primary px-4 py-2">
+                    <i class="fa fa-arrow-right mr-2"></i>加入网站
+                </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 相关站点 - 移动端顺序4 -->
+                <section class="fade-in mobile-order-4">
                     <h2 class="text-2xl font-bold text-dark mb-6">相关站点</h2>
                     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
                         <div class="p-6">
@@ -196,8 +244,8 @@
                     </div>
                 </section>
                 
-                <!-- 友情链接 -->
-                <section class="fade-in">
+                <!-- 友情链接 - 移动端顺序5 -->
+                <section class="fade-in mobile-order-5">
                     <h2 class="text-2xl font-bold text-dark mb-6">友情链接</h2>
                     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
                         <div class="p-6">
@@ -225,8 +273,8 @@
                 </section>
             </div>
             
-            <!-- 侧边栏 -->
-            <aside class="space-y-8">
+            <!-- 侧边栏 - 在桌面端显示 -->
+            <aside class="hidden lg:block space-y-8">
                 <div class="bg-white border border-gray-200 rounded-xl overflow-hidden fade-in">
                     <div class="sidebar-title">
                         <i class="fa fa-compass mr-2"></i>快速导航
@@ -270,7 +318,7 @@
                         记录、探索那些曾经存在却难以寻觅的媒体内容，让更多人了解和参与寻找失传媒体的过程。
                     </p>
                     <div class="flex space-x-4">
-                        <!-- <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
+                        <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
                             <i class="fa fa-twitter"></i>
                         </a>
                         <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
@@ -281,7 +329,7 @@
                         </a>
                         <a href="#" class="w-10 h-10 rounded-full bg-dark-light flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors">
                             <i class="fa fa-github"></i>
-                        </a> -->
+                        </a>
                     </div>
                 </div>
                 
@@ -345,4 +393,4 @@
         window.addEventListener('scroll', checkFadeIn);
     </script>
 </body>
-</html>    
+</html>
