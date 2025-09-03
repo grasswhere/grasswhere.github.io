@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>失传媒体条目可视化编辑器（测试版）</title>
+    <title>失传媒体条目可视化编辑器</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     
     <!-- 配置Tailwind自定义颜色 -->
     <script>
@@ -49,26 +49,46 @@
     </style>
     
     <style>
-        /* 自定义H1样式 */
+        /* 自定义标题样式 */
         #editor h1 {
             font-size: 130%;
             font-weight: bold;
             margin-top: 1.5rem;
             margin-bottom: 0.5rem;
         }
-
-              #editor h2 {
+        
+        #editor h2 {
             font-size: 120%;
             font-weight: bold;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
+            margin-top: 1.2rem;
+            margin-bottom: 0.4rem;
         }
-
-              #editor h3 {
+        
+        #editor h3 {
             font-size: 110%;
             font-weight: bold;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        /* 格式样式 */
+        #editor strong {
+            font-weight: bold;
+        }
+        
+        #editor em {
+            font-style: italic;
+        }
+        
+        #editor u {
+            text-decoration: underline;
+        }
+        
+        #editor code {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 0 3px;
+            border-radius: 2px;
         }
         
         /* 图片块样式 */
@@ -302,7 +322,7 @@
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
                 <i class="fa fa-edit text-primary text-xl"></i>
-                <h1 class="text-xl font-bold">失传媒体条目编辑器（测试版）</h1>
+                <h1 class="text-xl font-bold">失传媒体条目编辑器</h1>
             </div>
             <div class="flex items-center space-x-4">
                 <button id="resetBtn" class="flex items-center space-x-1 text-sm px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
@@ -438,7 +458,7 @@
     <div class="modal" id="urlModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">修改图片URL</h3>
+                <h3 class="modal-title" id="imageModalTitle">修改图片URL</h3>
                 <button class="close-modal" data-target="urlModal">&times;</button>
             </div>
             <div class="modal-body">
@@ -496,8 +516,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 新增：保存打开弹窗前的光标范围
-            let savedSelectionRange = null;
+            // 保存打开弹窗前的光标范围 - 分别为链接和图片设置
+            let savedLinkSelectionRange = null;
+            let savedImageSelectionRange = null;
             
             // 获取DOM元素
             const editor = document.getElementById('editor');
@@ -509,9 +530,11 @@
             
             // 弹窗相关元素（图片）
             const urlModal = document.getElementById('urlModal');
+            const imageModalTitle = document.getElementById('imageModalTitle');
             const imageUrlInput = document.getElementById('imageUrlInput');
             const confirmUrlBtn = document.getElementById('confirmUrlBtn');
             let currentImageBlock = null;
+            let isInsertingNewImage = false; // 标记是否是插入新图片还是修改现有图片
             
             // 弹窗相关元素（链接）
             const linkModal = document.getElementById('linkModal');
@@ -580,7 +603,7 @@
             });
             
             // -------------------------- 图片弹窗逻辑 --------------------------
-            // 图片块点击事件（触发弹窗）
+            // 图片块点击事件（触发弹窗 - 修改现有图片）
             editor.addEventListener('click', (e) => {
                 // 优先判断是否点击链接（避免与图片点击冲突）
                 const linkElement = e.target.closest('a');
@@ -594,10 +617,13 @@
                 const imageBlock = e.target.closest('.scp-image-block');
                 if (imageBlock) {
                     currentImageBlock = imageBlock;
+                    isInsertingNewImage = false;
                     // 获取当前图片的URL
                     const imgElement = imageBlock.querySelector('img');
                     const currentUrl = imgElement ? imgElement.src : 'URL';
                     imageUrlInput.value = currentUrl;
+                    // 更新弹窗标题
+                    imageModalTitle.textContent = '修改图片URL';
                     // 显示弹窗并聚焦输入框
                     openModal(urlModal);
                     imageUrlInput.focus();
@@ -605,10 +631,8 @@
                 }
             });
             
-            // 确认修改图片URL
+            // 确认修改/插入图片
             confirmUrlBtn.addEventListener('click', () => {
-                if (!currentImageBlock) return;
-                
                 const inputUrl = imageUrlInput.value.trim();
                 if (!inputUrl) {
                     showStatus('请输入有效的图片URL', 'error');
@@ -616,18 +640,24 @@
                     return;
                 }
                 
-                // 更新图片URL
-                const imgElement = currentImageBlock.querySelector('img');
-                if (imgElement) {
-                    imgElement.src = inputUrl;
-                    imgElement.alt = inputUrl; // 同时更新alt属性
+                if (isInsertingNewImage) {
+                    // 插入新图片
+                    insertImageAtSavedPosition(inputUrl);
+                } else if (currentImageBlock) {
+                    // 修改现有图片
+                    const imgElement = currentImageBlock.querySelector('img');
+                    if (imgElement) {
+                        imgElement.src = inputUrl;
+                        imgElement.alt = inputUrl; // 同时更新alt属性
+                    }
+                    currentImageBlock = null;
                 }
                 
                 // 关闭弹窗并更新代码预览
                 closeModal(urlModal);
-                currentImageBlock = null;
+                isInsertingNewImage = false;
                 updateCodeOutput();
-                showStatus('图片URL已成功更新', 'success');
+                showStatus(isInsertingNewImage ? '图片已插入' : '图片URL已更新', 'success');
             });
             
             // -------------------------- 链接弹窗逻辑 --------------------------
@@ -696,12 +726,12 @@
                     let targetRange = null;
 
                     // 优先使用保存的光标范围（若有效）
-                    if (savedSelectionRange) {
+                    if (savedLinkSelectionRange) {
                         try {
                             // 检查范围是否仍有效（避免编辑区内容被修改导致失效）
-                            const container = savedSelectionRange.commonAncestorContainer;
+                            const container = savedLinkSelectionRange.commonAncestorContainer;
                             if (editor.contains(container)) {
-                                targetRange = savedSelectionRange;
+                                targetRange = savedLinkSelectionRange;
                             }
                         } catch (e) {
                             // 范围无效时，降级使用当前选择范围
@@ -725,7 +755,7 @@
                     }
 
                     // 插入后重置保存的范围（避免下次复用错误）
-                    savedSelectionRange = null;
+                    savedLinkSelectionRange = null;
                 }
                 
                 // 关闭弹窗并更新代码预览
@@ -744,12 +774,16 @@
                     if (targetModal) {
                         closeModal(targetModal);
                         // 重置对应弹窗的临时数据
-                        if (targetModalId === 'urlModal') currentImageBlock = null;
+                        if (targetModalId === 'urlModal') {
+                            currentImageBlock = null;
+                            isInsertingNewImage = false;
+                            savedImageSelectionRange = null; // 关闭弹窗时清除保存的图片光标范围
+                        }
                         if (targetModalId === 'linkModal') {
                             currentLinkElement = null;
                             linkModalTitle.textContent = '插入链接';
                             resetLinkModalForm();
-                            savedSelectionRange = null; // 关闭弹窗时清除保存的范围
+                            savedLinkSelectionRange = null; // 关闭弹窗时清除保存的链接光标范围
                         }
                     }
                 });
@@ -761,12 +795,16 @@
                     if (e.target === modal) {
                         closeModal(modal);
                         // 重置对应弹窗的临时数据
-                        if (modal.id === 'urlModal') currentImageBlock = null;
+                        if (modal.id === 'urlModal') {
+                            currentImageBlock = null;
+                            isInsertingNewImage = false;
+                            savedImageSelectionRange = null;
+                        }
                         if (modal.id === 'linkModal') {
                             currentLinkElement = null;
                             linkModalTitle.textContent = '插入链接';
                             resetLinkModalForm();
-                            savedSelectionRange = null; // 关闭弹窗时清除保存的范围
+                            savedLinkSelectionRange = null;
                         }
                     }
                 });
@@ -777,19 +815,23 @@
                 if (e.key === 'Escape') {
                     document.querySelectorAll('.modal.active').forEach(modal => {
                         closeModal(modal);
-                        if (modal.id === 'urlModal') currentImageBlock = null;
+                        if (modal.id === 'urlModal') {
+                            currentImageBlock = null;
+                            isInsertingNewImage = false;
+                            savedImageSelectionRange = null;
+                        }
                         if (modal.id === 'linkModal') {
                             currentLinkElement = null;
                             linkModalTitle.textContent = '插入链接';
                             resetLinkModalForm();
-                            savedSelectionRange = null; // 关闭弹窗时清除保存的范围
+                            savedLinkSelectionRange = null;
                         }
                     });
                 }
             });
             
             // -------------------------- 核心功能函数 --------------------------
-            // 应用格式化（含链接逻辑）
+            // 应用格式化（含链接和图片逻辑）
             function applyFormatting(command) {
                 const selection = window.getSelection();
                 if (selection.isCollapsed && !['h1', 'h2', 'h3', 'list', 'image', 'link'].includes(command)) {
@@ -798,16 +840,20 @@
                 
                 switch (command) {
                     case 'bold':
-                        wrapSelectionWithMarkers(selection, '**');
+                        // 使用document.execCommand实现真实的粗体效果
+                        document.execCommand('bold', false, null);
                         break;
                     case 'italic':
-                        wrapSelectionWithMarkers(selection, '//');
+                        // 使用document.execCommand实现真实的斜体效果
+                        document.execCommand('italic', false, null);
                         break;
                     case 'underline':
-                        wrapSelectionWithMarkers(selection, '__');
+                        // 使用document.execCommand实现真实的下划线效果
+                        document.execCommand('underline', false, null);
                         break;
                     case 'monospace':
-                        wrapSelectionWithMarkers(selection, '{{', '}}');
+                        // 应用等宽格式（使用<code>标签）
+                        applyMonospaceFormat(selection);
                         break;
                     case 'h1':
                     case 'h2':
@@ -818,12 +864,26 @@
                         document.execCommand('insertUnorderedList', false, null);
                         break;
                     case 'image':
-                        insertImage(selection);
+                        // 打开图片弹窗前，保存当前光标位置
+                        if (selection.rangeCount > 0) {
+                            savedImageSelectionRange = selection.getRangeAt(0).cloneRange();
+                        }
+                        // 标记为插入新图片
+                        isInsertingNewImage = true;
+                        currentImageBlock = null;
+                        // 更新弹窗标题
+                        imageModalTitle.textContent = '插入图片';
+                        // 重置输入框
+                        imageUrlInput.value = 'URL';
+                        // 显示弹窗并聚焦输入框
+                        openModal(urlModal);
+                        imageUrlInput.focus();
+                        imageUrlInput.select();
                         break;
                     case 'link':
                         // 打开弹窗前，保存当前光标范围
                         if (selection.rangeCount > 0) {
-                            savedSelectionRange = selection.getRangeAt(0).cloneRange();
+                            savedLinkSelectionRange = selection.getRangeAt(0).cloneRange();
                         }
                         // 打开链接插入弹窗（新链接）
                         currentLinkElement = null;
@@ -840,24 +900,105 @@
                 updateCodeOutput();
             }
             
-            // 用标记包裹选中文本
-            function wrapSelectionWithMarkers(selection, startMarker, endMarker = null) {
+            // 在保存的光标位置插入图片
+            function insertImageAtSavedPosition(imageUrl) {
+                const selection = window.getSelection();
+                let targetRange = null;
+
+                // 优先使用保存的光标范围（若有效）
+                if (savedImageSelectionRange) {
+                    try {
+                        // 检查范围是否仍有效
+                        const container = savedImageSelectionRange.commonAncestorContainer;
+                        if (editor.contains(container)) {
+                            targetRange = savedImageSelectionRange;
+                        }
+                    } catch (e) {
+                        // 范围无效时，使用当前选择范围
+                        targetRange = selection.rangeCount ? selection.getRangeAt(0) : null;
+                    }
+                } else {
+                    // 无保存范围时，使用当前选择范围
+                    targetRange = selection.rangeCount ? selection.getRangeAt(0) : null;
+                }
+
+                if (targetRange) {
+                    // 创建图片块
+                    const imageBlock = document.createElement('div');
+                    imageBlock.className = 'scp-image-block block-right';
+                    imageBlock.style = 'width:300px;';
+                    
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.style = 'width:300px;';
+                    img.alt = imageUrl;
+                    img.className = 'image';
+                    
+                    const captionDiv = document.createElement('div');
+                    captionDiv.className = 'scp-image-caption';
+                    captionDiv.innerHTML = '<p>描述（图片可存站点附件区）</p>';
+                    
+                    imageBlock.appendChild(img);
+                    imageBlock.appendChild(captionDiv);
+                    
+                    targetRange.deleteContents();
+                    targetRange.insertNode(imageBlock);
+                    
+                    // 图片后添加空段落
+                    const p = document.createElement('p');
+                    p.innerHTML = '&nbsp;';
+                    imageBlock.parentNode.insertBefore(p, imageBlock.nextSibling);
+                    
+                    // 移动光标到图片后
+                    targetRange.setStart(p, 0);
+                    targetRange.setEnd(p, 0);
+                    selection.removeAllRanges();
+                    selection.addRange(targetRange);
+                }
+                
+                // 重置保存的范围
+                savedImageSelectionRange = null;
+            }
+            
+            // 应用等宽格式（使用<code>标签）
+            function applyMonospaceFormat(selection) {
                 if (!selection.rangeCount) return;
-                endMarker = endMarker || startMarker;
                 
                 const range = selection.getRangeAt(0);
-                const selectedText = selection.toString();
-                const textNode = document.createTextNode(
-                    selectedText.startsWith(startMarker) && selectedText.endsWith(endMarker)
-                        ? selectedText.substring(startMarker.length, selectedText.length - endMarker.length)
-                        : startMarker + selectedText + endMarker
-                );
+                const selectedContent = range.cloneContents();
                 
-                range.deleteContents();
-                range.insertNode(textNode);
-                // 更新光标位置
-                range.setStartAfter(textNode);
-                range.setEndAfter(textNode);
+                // 检查选中内容是否已包含在<code>标签中
+                let isAlreadyMonospace = false;
+                if (range.startContainer.nodeType === Node.ELEMENT_NODE && 
+                    range.startContainer.tagName.toLowerCase() === 'code' &&
+                    range.endContainer.nodeType === Node.ELEMENT_NODE && 
+                    range.endContainer.tagName.toLowerCase() === 'code' &&
+                    range.startContainer === range.endContainer) {
+                    isAlreadyMonospace = true;
+                }
+                
+                if (isAlreadyMonospace) {
+                    // 如果已应用等宽格式，则移除<code>标签
+                    const parentCode = range.commonAncestorContainer.closest('code');
+                    if (parentCode) {
+                        const textContent = parentCode.textContent;
+                        const textNode = document.createTextNode(textContent);
+                        parentCode.parentNode.replaceChild(textNode, parentCode);
+                        // 调整光标位置
+                        range.setStartAfter(textNode);
+                        range.setEndAfter(textNode);
+                    }
+                } else {
+                    // 应用等宽格式，使用<code>标签
+                    const codeElement = document.createElement('code');
+                    codeElement.appendChild(selectedContent);
+                    range.deleteContents();
+                    range.insertNode(codeElement);
+                    // 调整光标位置
+                    range.setStartAfter(codeElement);
+                    range.setEndAfter(codeElement);
+                }
+                
                 selection.removeAllRanges();
                 selection.addRange(range);
             }
@@ -893,47 +1034,12 @@
                 selection.addRange(range);
             }
             
-            // 插入图片
-            function insertImage(selection) {
-                if (!selection.rangeCount) return;
-                
-                const range = selection.getRangeAt(0);
-                // 创建图片块
-                const imageBlock = document.createElement('div');
-                imageBlock.className = 'scp-image-block block-right';
-                imageBlock.style = 'width:300px;';
-                
-                const img = document.createElement('img');
-                img.src = 'URL';
-                img.style = 'width:300px;';
-                img.alt = 'URL';
-                img.className = 'image';
-                
-                const captionDiv = document.createElement('div');
-                captionDiv.className = 'scp-image-caption';
-                captionDiv.innerHTML = '<p>描述（图片可存站点附件区）</p>';
-                
-                imageBlock.appendChild(img);
-                imageBlock.appendChild(captionDiv);
-                range.deleteContents();
-                range.insertNode(imageBlock);
-                
-                // 图片后添加空段落
-                const p = document.createElement('p');
-                p.innerHTML = '&nbsp;';
-                imageBlock.parentNode.insertBefore(p, imageBlock.nextSibling);
-                range.setStart(p, 0);
-                range.setEnd(p, 0);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-            
             // 打开链接编辑弹窗（编辑现有链接）
             function openLinkModal(linkElement) {
                 // 编辑现有链接时，保存当前光标范围
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
-                    savedSelectionRange = selection.getRangeAt(0).cloneRange();
+                    savedLinkSelectionRange = selection.getRangeAt(0).cloneRange();
                 }
                 
                 currentLinkElement = linkElement;
