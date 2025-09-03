@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>失传媒体条目可视化编辑器（测试版）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'rgb(252, 252, 252)',
+                        text: 'rgb(35, 35, 38)',
+                        primary: '#3B82F6',
+                        secondary: '#64748B',
+                        accent: '#10B981',
+                        neutral: '#F1F5F9',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .editor-focus {
+                @apply ring-2 ring-primary/50 transition-all duration-200;
+            }
+            .btn-hover {
+                @apply hover:bg-primary/10 active:bg-primary/20 transition-all duration-200;
+            }
+            .toolbar-btn {
+                @apply p-2 rounded-md btn-hover flex items-center justify-center text-sm;
+            }
+            .toolbar-divider {
+                @apply w-px h-6 bg-gray-300 mx-1;
+            }
+        }
+    </style>
+    
+    <style>
+        /* 自定义H1样式 */
+        #editor h1 {
+            font-size: 130%;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+              #editor h2 {
+            font-size: 120%;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+              #editor h3 {
+            font-size: 110%;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* 图片块样式 */
+        :root {
+            --imageblock-shadow-color: 0, 0, 0;
+            --imageblock-border-color: 200, 200, 200;
+            --imageblock-border-width: 1px;
+            --imageblock-caption-background-color: 240, 240, 244;
+            --imageblock-caption-text-color: 35, 35, 38;
+        }
+        
+        #editor img {
+            margin: 1rem 0;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .image-container {
+            padding: 0;
+            margin: 1rem 0;
+            max-width: 100%;
+        }
+        
+        .scp-image-block {
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0.2rem 0.2rem 0.4rem rgba(var(--imageblock-shadow-color), 0.2);
+            clear: both;
+            border: rgba(var(--imageblock-border-color)) var(--imageblock-border-width) solid;
+            max-width: 100%;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .scp-image-caption {
+            background: rgba(var(--imageblock-caption-background-color));
+            color: rgba(var(--imageblock-caption-text-color));
+            padding: 0.5em 1em;
+            text-align: center;
+            width: auto !important;
+        }
+        
+        .scp-image-caption p {
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .scp-image-block.block-right {
+            float: right;
+            margin: 0.25rem 0 1rem 2rem;
+        }
+        
+        .scp-image-block.block-left {
+            float: left;
+            margin: 0.25rem 2rem 1rem 0;
+        }
+        
+        .scp-image-block.block-center {
+            margin: 1rem auto;
+        }
+
+        /* 代码预览区样式 */
+        .code-preview-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        #codeOutput {
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        /* 弹窗通用样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.8rem;
+        }
+        
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+        
+        .close-modal:hover {
+            color: var(--text);
+        }
+        
+        .modal-body {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .modal-label {
+            display: block;
+            font-weight: 500;
+            color: var(--text);
+        }
+        
+        .modal-input, .modal-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        
+        .modal-input:focus, .modal-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .modal-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .btn-cancel {
+            background: #f5f5f5;
+            color: var(--text);
+        }
+        
+        .btn-cancel:hover {
+            background: #eee;
+        }
+        
+        .btn-confirm {
+            background: #2563eb;
+            color: white;
+            padding: 0.6rem 1.5rem;
+        }
+        
+        .btn-confirm:hover {
+            background: #2563eb;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        /* 列表样式 */
+        menu, ol, ul {
+            list-style: disc !important;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* 编辑器内链接样式 */
+        #editor a {
+            color: #2563eb;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        #editor a:hover {
+            color: #1d4ed8;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-text min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-edit text-primary text-xl"></i>
+                <h1 class="text-xl font-bold">失传媒体条目编辑器（测试版）</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="resetBtn" class="flex items-center space-x-1 text-sm px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                    <i class="fa fa-refresh"></i>
+                    <span>重置</span>
+                </button>
+                <button id="copyBtn" class="flex items-center space-x-1 text-sm px-3 py-1.5 bg-primary text-white hover:bg-primary/90 rounded-md transition-colors">
+                    <i class="fa fa-copy"></i>
+                    <span>复制代码</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 工具栏 -->
+    <div class="bg-white border-b border-gray-200 py-2 sticky top-14 z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap items-center gap-1">
+                <div class="flex items-center">
+                    <button class="toolbar-btn" data-command="bold" title="粗体 (Ctrl+B)">
+                        <i class="fa fa-bold"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="italic" title="斜体 (Ctrl+I)">
+                        <i class="fa fa-italic"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="underline" title="下划线 (Ctrl+U)">
+                        <i class="fa fa-underline"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="monospace" title="等宽字符">
+                        <i class="fa fa-code"></i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-divider"></div>
+                
+                <div class="flex items-center">
+                    <button class="toolbar-btn" data-command="h1" title="标题 1">
+                        <i class="fa fa-header"></i>
+                        <span class="ml-1">1</span>
+                    </button>
+                    <button class="toolbar-btn" data-command="h2" title="标题 2">
+                        <i class="fa fa-header"></i>
+                        <span class="ml-1">2</span>
+                    </button>
+                    <button class="toolbar-btn" data-command="h3" title="标题 3">
+                        <i class="fa fa-header"></i>
+                        <span class="ml-1">3</span>
+                    </button>
+                </div>
+                
+                <div class="toolbar-divider"></div>
+                
+                <div class="flex items-center">
+                    <button class="toolbar-btn" data-command="list" title="无序列表">
+                        <i class="fa fa-list-ul"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="link" title="插入链接">
+                        <i class="fa fa-link"></i>
+                    </button>
+                    <button class="toolbar-btn" data-command="image" title="插入图片">
+                        <i class="fa fa-image"></i>
+                    </button>
+                </div>
+                
+                <div class="ml-auto text-xs text-gray-500 px-2 py-1">
+                    提示: 选中文字后点击按钮应用样式 | 点击图片块/链接可修改
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 编辑器区域 -->
+            <div class="flex flex-col h-full">
+                <label for="editor" class="text-sm font-medium mb-2 flex items-center">
+                    <i class="fa fa-edit mr-2 text-primary"></i>
+                    可视化编辑区
+                </label>
+                <div id="editor" class="flex-grow min-h-[600px] bg-white border border-gray-300 rounded-lg p-6 focus:outline-none transition-shadow shadow-sm hover:shadow-md overflow-auto" contenteditable="true">
+                    <!-- 初始内容 -->
+                    <div class="scp-image-block block-right" style="width:300px;">
+                        <img src="URL" style="width:300px;" alt="URL" class="image">
+                        <div class="scp-image-caption">
+                            <p>描述（图片可存站点附件区）</p>
+                        </div>
+                    </div>
+                    
+                    <p><strong>失传媒体名</strong>（中文译名，如果有）是（简要描述）</p>
+                    
+                    <h1>描述</h1>
+                    <p>细致描述该失传媒体，可插入<a href="https://lostmedia.wikidot.com/">示例链接</a>补充说明</p>
+                    
+                    <h1>搜索历史</h1>
+                    <p>描述该失传媒体搜索过程，如果有（无需写发现过程）</p>
+                    
+                    <h1>获取状态</h1>
+                    <p>该失传媒体目前的找到情况、可获取性等，若该媒体已发现，则将大标题改为<strong>发现</strong></p>
+                    
+                    <h1>相关图片</h1>
+                    <p>插入该失传媒体的更多相关图片（如果有）</p>
+                    
+                    <h1>相关链接</h1>
+                    <ul>
+                        <li><a href="URL" target="_blank">Lost Media Wiki相关条目</a></li>
+                        <li><a href="URL" target="_blank">Lost Waves Wiki相关条目</a></li>
+                        <li><a href="URL" target="_blank">Lostwave's Finest Wiki 相关条目</a></li>
+                        <li><a href="URL" target="_blank">Lost Media Archive 相关条目</a></li>
+                        <li><a href="URL" target="_blank">以及更多，如贴吧、Reddit等</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 代码预览区 -->
+            <div class="code-preview-container h-full">
+                <label for="codeOutput" class="text-sm font-medium mb-2 flex items-center">
+                    <i class="fa fa-code mr-2 text-primary"></i>
+                    转义代码预览
+                </label>
+                <div class="relative flex-grow">
+                    <pre class="absolute top-0 right-0 m-2 text-xs bg-gray-100 px-2 py-1 rounded opacity-70">wiki语法</pre>
+                    <textarea id="codeOutput" class="w-full h-full min-h-[600px] bg-gray-50 border border-gray-300 rounded-lg p-6 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all shadow-sm resize-none" readonly></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 状态提示区 -->
+        <div id="statusMessage" class="mt-4 py-2 px-4 rounded-md text-sm hidden"></div>
+    </main>
+
+    <!-- URL输入弹窗（图片） -->
+    <div class="modal" id="urlModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">修改图片URL</h3>
+                <button class="close-modal" data-target="urlModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form-group">
+                    <label class="modal-label" for="imageUrlInput">图片URL</label>
+                    <input type="text" id="imageUrlInput" class="modal-input" placeholder="请输入图片的完整URL" value="URL">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn btn-cancel close-modal" data-target="urlModal">取消</button>
+                <button class="modal-btn btn-confirm" id="confirmUrlBtn">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 链接编辑弹窗 -->
+    <div class="modal" id="linkModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="linkModalTitle">插入链接</h3>
+                <button class="close-modal" data-target="linkModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-form-group">
+                    <label class="modal-label" for="linkTypeSelect">链接类型</label>
+                    <select id="linkTypeSelect" class="modal-select">
+                        <option value="normal">普通链接（默认窗口打开）</option>
+                        <option value="blank">新窗口链接（带*标记）</option>
+                        <option value="internal">内部路径（无文本）</option>
+                        <option value="internal-text">内部路径（带文本）</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label" for="linkUrlInput">URL/路径</label>
+                    <input type="text" id="linkUrlInput" class="modal-input" placeholder="例如：https://lostmedia.wikidot.com/ 或 /lostpage" value="">
+                </div>
+                <div class="modal-form-group" id="linkTextGroup">
+                    <label class="modal-label" for="linkTextInput">链接文本</label>
+                    <input type="text" id="linkTextInput" class="modal-input" placeholder="点击链接显示的文字" value="">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn btn-cancel close-modal" data-target="linkModal">取消</button>
+                <button class="modal-btn btn-confirm" id="confirmLinkBtn">确认插入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-6">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            失传媒体条目编辑器 &copy; 2023
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 新增：保存打开弹窗前的光标范围
+            let savedSelectionRange = null;
+            
+            // 获取DOM元素
+            const editor = document.getElementById('editor');
+            const codeOutput = document.getElementById('codeOutput');
+            const toolbarButtons = document.querySelectorAll('[data-command]');
+            const copyBtn = document.getElementById('copyBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // 弹窗相关元素（图片）
+            const urlModal = document.getElementById('urlModal');
+            const imageUrlInput = document.getElementById('imageUrlInput');
+            const confirmUrlBtn = document.getElementById('confirmUrlBtn');
+            let currentImageBlock = null;
+            
+            // 弹窗相关元素（链接）
+            const linkModal = document.getElementById('linkModal');
+            const linkTypeSelect = document.getElementById('linkTypeSelect');
+            const linkUrlInput = document.getElementById('linkUrlInput');
+            const linkTextInput = document.getElementById('linkTextInput');
+            const linkTextGroup = document.getElementById('linkTextGroup');
+            const linkModalTitle = document.getElementById('linkModalTitle');
+            const confirmLinkBtn = document.getElementById('confirmLinkBtn');
+            let currentLinkElement = null; // 存储当前编辑的链接元素
+            
+            // 初始转换一次
+            updateCodeOutput();
+            
+            // 编辑器内容变化时更新代码输出并处理换行
+            editor.addEventListener('input', () => {
+                normalizeLineBreaks(editor);
+                updateCodeOutput();
+            });
+            
+            editor.addEventListener('focus', () => editor.classList.add('editor-focus'));
+            editor.addEventListener('blur', () => editor.classList.remove('editor-focus'));
+            
+            // 工具栏按钮点击事件
+            toolbarButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const command = button.getAttribute('data-command');
+                    applyFormatting(command);
+                    editor.focus();
+                });
+            });
+            
+            // 复制代码按钮
+            copyBtn.addEventListener('click', () => {
+                codeOutput.select();
+                document.execCommand('copy');
+                showStatus('代码已复制到剪贴板', 'success');
+            });
+            
+            // 重置按钮
+            resetBtn.addEventListener('click', () => {
+                if (confirm('确定要重置编辑器吗？所有更改都将丢失。')) {
+                    resetEditor();
+                    updateCodeOutput();
+                    showStatus('编辑器已重置', 'info');
+                }
+            });
+            
+            // 快捷键支持
+            document.addEventListener('keydown', (e) => {
+                // Ctrl+B 粗体
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    applyFormatting('bold');
+                }
+                // Ctrl+I 斜体
+                if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    applyFormatting('italic');
+                }
+                // Ctrl+U 下划线
+                if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    applyFormatting('underline');
+                }
+            });
+            
+            // -------------------------- 图片弹窗逻辑 --------------------------
+            // 图片块点击事件（触发弹窗）
+            editor.addEventListener('click', (e) => {
+                // 优先判断是否点击链接（避免与图片点击冲突）
+                const linkElement = e.target.closest('a');
+                if (linkElement) {
+                    e.preventDefault(); // 阻止链接默认跳转
+                    openLinkModal(linkElement); // 打开链接编辑弹窗
+                    return;
+                }
+                
+                // 图片块点击逻辑
+                const imageBlock = e.target.closest('.scp-image-block');
+                if (imageBlock) {
+                    currentImageBlock = imageBlock;
+                    // 获取当前图片的URL
+                    const imgElement = imageBlock.querySelector('img');
+                    const currentUrl = imgElement ? imgElement.src : 'URL';
+                    imageUrlInput.value = currentUrl;
+                    // 显示弹窗并聚焦输入框
+                    openModal(urlModal);
+                    imageUrlInput.focus();
+                    imageUrlInput.select();
+                }
+            });
+            
+            // 确认修改图片URL
+            confirmUrlBtn.addEventListener('click', () => {
+                if (!currentImageBlock) return;
+                
+                const inputUrl = imageUrlInput.value.trim();
+                if (!inputUrl) {
+                    showStatus('请输入有效的图片URL', 'error');
+                    imageUrlInput.focus();
+                    return;
+                }
+                
+                // 更新图片URL
+                const imgElement = currentImageBlock.querySelector('img');
+                if (imgElement) {
+                    imgElement.src = inputUrl;
+                    imgElement.alt = inputUrl; // 同时更新alt属性
+                }
+                
+                // 关闭弹窗并更新代码预览
+                closeModal(urlModal);
+                currentImageBlock = null;
+                updateCodeOutput();
+                showStatus('图片URL已成功更新', 'success');
+            });
+            
+            // -------------------------- 链接弹窗逻辑 --------------------------
+            // 链接类型切换事件（控制文本输入框显示）
+            linkTypeSelect.addEventListener('change', () => {
+                const selectedType = linkTypeSelect.value;
+                // 内部路径（无文本）类型隐藏文本输入框
+                if (selectedType === 'internal') {
+                    linkTextGroup.classList.add('hidden');
+                    // 自动填充文本为路径（去除开头的/）
+                    const urlValue = linkUrlInput.value.trim();
+                    if (urlValue) {
+                        linkTextInput.value = urlValue.startsWith('/') ? urlValue.slice(1) : urlValue;
+                    }
+                } else {
+                    linkTextGroup.classList.remove('hidden');
+                    // 普通链接/新窗口链接默认提示文本
+                    if (!linkTextInput.value.trim() && (selectedType === 'normal' || selectedType === 'blank')) {
+                        linkTextInput.placeholder = '例如：Lost Media Wiki';
+                    }
+                    // 内部路径带文本默认提示文本
+                    if (selectedType === 'internal-text' && !linkTextInput.placeholder.includes('内部路径')) {
+                        linkTextInput.placeholder = '例如：失传媒体条目';
+                    }
+                }
+                // 更新URL输入框提示文本
+                updateLinkInputPlaceholders();
+            });
+            
+            // 确认插入/修改链接
+            confirmLinkBtn.addEventListener('click', () => {
+                const linkType = linkTypeSelect.value;
+                const linkUrl = linkUrlInput.value.trim();
+                let linkText = linkTextInput.value.trim();
+                
+                // 验证输入
+                if (!linkUrl) {
+                    showStatus('请输入有效的URL或内部路径', 'error');
+                    linkUrlInput.focus();
+                    return;
+                }
+                
+                // 处理不同链接类型的文本默认值
+                if (linkType === 'internal') {
+                    // 内部路径（无文本）：文本默认等于路径（去除开头的/）
+                    linkText = linkUrl.startsWith('/') ? linkUrl.slice(1) : linkUrl;
+                } else if (!linkText) {
+                    // 其他类型：无文本时默认用URL作为文本
+                    linkText = linkUrl;
+                }
+                
+                // 生成链接HTML
+                const linkHtml = createLinkHtml(linkType, linkUrl, linkText);
+                
+                if (currentLinkElement) {
+                    // 编辑现有链接：替换内容
+                    const range = document.createRange();
+                    range.selectNode(currentLinkElement);
+                    const fragment = range.createContextualFragment(linkHtml);
+                    currentLinkElement.parentNode.replaceChild(fragment, currentLinkElement);
+                    currentLinkElement = null;
+                    linkModalTitle.textContent = '插入链接'; // 恢复弹窗标题
+                } else {
+                    // 插入新链接：使用保存的光标范围
+                    const selection = window.getSelection();
+                    let targetRange = null;
+
+                    // 优先使用保存的光标范围（若有效）
+                    if (savedSelectionRange) {
+                        try {
+                            // 检查范围是否仍有效（避免编辑区内容被修改导致失效）
+                            const container = savedSelectionRange.commonAncestorContainer;
+                            if (editor.contains(container)) {
+                                targetRange = savedSelectionRange;
+                            }
+                        } catch (e) {
+                            // 范围无效时，降级使用当前选择范围
+                            targetRange = selection.rangeCount ? selection.getRangeAt(0) : null;
+                        }
+                    } else {
+                        // 无保存范围时，使用当前选择范围
+                        targetRange = selection.rangeCount ? selection.getRangeAt(0) : null;
+                    }
+
+                    // 执行插入（基于目标范围）
+                    if (targetRange) {
+                        const fragment = targetRange.createContextualFragment(linkHtml);
+                        targetRange.deleteContents();
+                        targetRange.insertNode(fragment);
+                        // 移动光标到链接后（优化体验）
+                        targetRange.setStartAfter(fragment.lastChild);
+                        targetRange.setEndAfter(fragment.lastChild);
+                        selection.removeAllRanges();
+                        selection.addRange(targetRange);
+                    }
+
+                    // 插入后重置保存的范围（避免下次复用错误）
+                    savedSelectionRange = null;
+                }
+                
+                // 关闭弹窗并更新代码预览
+                closeModal(linkModal);
+                resetLinkModalForm();
+                updateCodeOutput();
+                showStatus(currentLinkElement ? '链接已更新' : '链接已插入', 'success');
+            });
+            
+            // -------------------------- 通用弹窗控制 --------------------------
+            // 关闭弹窗按钮事件（所有带data-target的关闭按钮）
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetModalId = btn.getAttribute('data-target');
+                    const targetModal = document.getElementById(targetModalId);
+                    if (targetModal) {
+                        closeModal(targetModal);
+                        // 重置对应弹窗的临时数据
+                        if (targetModalId === 'urlModal') currentImageBlock = null;
+                        if (targetModalId === 'linkModal') {
+                            currentLinkElement = null;
+                            linkModalTitle.textContent = '插入链接';
+                            resetLinkModalForm();
+                            savedSelectionRange = null; // 关闭弹窗时清除保存的范围
+                        }
+                    }
+                });
+            });
+            
+            // 点击弹窗外部关闭
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal);
+                        // 重置对应弹窗的临时数据
+                        if (modal.id === 'urlModal') currentImageBlock = null;
+                        if (modal.id === 'linkModal') {
+                            currentLinkElement = null;
+                            linkModalTitle.textContent = '插入链接';
+                            resetLinkModalForm();
+                            savedSelectionRange = null; // 关闭弹窗时清除保存的范围
+                        }
+                    }
+                });
+            });
+            
+            // 按ESC键关闭所有弹窗
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.active').forEach(modal => {
+                        closeModal(modal);
+                        if (modal.id === 'urlModal') currentImageBlock = null;
+                        if (modal.id === 'linkModal') {
+                            currentLinkElement = null;
+                            linkModalTitle.textContent = '插入链接';
+                            resetLinkModalForm();
+                            savedSelectionRange = null; // 关闭弹窗时清除保存的范围
+                        }
+                    });
+                }
+            });
+            
+            // -------------------------- 核心功能函数 --------------------------
+            // 应用格式化（含链接逻辑）
+            function applyFormatting(command) {
+                const selection = window.getSelection();
+                if (selection.isCollapsed && !['h1', 'h2', 'h3', 'list', 'image', 'link'].includes(command)) {
+                    return;
+                }
+                
+                switch (command) {
+                    case 'bold':
+                        wrapSelectionWithMarkers(selection, '**');
+                        break;
+                    case 'italic':
+                        wrapSelectionWithMarkers(selection, '//');
+                        break;
+                    case 'underline':
+                        wrapSelectionWithMarkers(selection, '__');
+                        break;
+                    case 'monospace':
+                        wrapSelectionWithMarkers(selection, '{{', '}}');
+                        break;
+                    case 'h1':
+                    case 'h2':
+                    case 'h3':
+                        applyHeading(selection, command);
+                        break;
+                    case 'list':
+                        document.execCommand('insertUnorderedList', false, null);
+                        break;
+                    case 'image':
+                        insertImage(selection);
+                        break;
+                    case 'link':
+                        // 打开弹窗前，保存当前光标范围
+                        if (selection.rangeCount > 0) {
+                            savedSelectionRange = selection.getRangeAt(0).cloneRange();
+                        }
+                        // 打开链接插入弹窗（新链接）
+                        currentLinkElement = null;
+                        linkModalTitle.textContent = '插入链接';
+                        // 用选中的文本作为默认链接文本
+                        const selectedText = selection.toString().trim();
+                        if (selectedText) linkTextInput.value = selectedText;
+                        openModal(linkModal);
+                        linkUrlInput.focus();
+                        break;
+                }
+                
+                normalizeLineBreaks(editor);
+                updateCodeOutput();
+            }
+            
+            // 用标记包裹选中文本
+            function wrapSelectionWithMarkers(selection, startMarker, endMarker = null) {
+                if (!selection.rangeCount) return;
+                endMarker = endMarker || startMarker;
+                
+                const range = selection.getRangeAt(0);
+                const selectedText = selection.toString();
+                const textNode = document.createTextNode(
+                    selectedText.startsWith(startMarker) && selectedText.endsWith(endMarker)
+                        ? selectedText.substring(startMarker.length, selectedText.length - endMarker.length)
+                        : startMarker + selectedText + endMarker
+                );
+                
+                range.deleteContents();
+                range.insertNode(textNode);
+                // 更新光标位置
+                range.setStartAfter(textNode);
+                range.setEndAfter(textNode);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            // 应用标题格式
+            function applyHeading(selection, tagName) {
+                if (!selection.rangeCount) return;
+                
+                const range = selection.getRangeAt(0);
+                let parent = range.commonAncestorContainer;
+                if (parent.nodeType === 3) parent = parent.parentNode;
+                
+                // 切换标题/普通文本
+                if (['h1', 'h2', 'h3'].includes(parent.tagName?.toLowerCase())) {
+                    const p = document.createElement('p');
+                    p.textContent = parent.textContent;
+                    parent.parentNode.replaceChild(p, parent);
+                    range.setStartAfter(p);
+                } else {
+                    const heading = document.createElement(tagName);
+                    heading.textContent = selection.toString() || (tagName === 'h1' ? '标题' : '子标题');
+                    range.deleteContents();
+                    range.insertNode(heading);
+                    // 标题后添加空段落
+                    const p = document.createElement('p');
+                    p.innerHTML = '&nbsp;';
+                    heading.parentNode.insertBefore(p, heading.nextSibling);
+                    range.setStart(p, 0);
+                }
+                
+                range.setEnd(range.startContainer, range.startOffset);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            // 插入图片
+            function insertImage(selection) {
+                if (!selection.rangeCount) return;
+                
+                const range = selection.getRangeAt(0);
+                // 创建图片块
+                const imageBlock = document.createElement('div');
+                imageBlock.className = 'scp-image-block block-right';
+                imageBlock.style = 'width:300px;';
+                
+                const img = document.createElement('img');
+                img.src = 'URL';
+                img.style = 'width:300px;';
+                img.alt = 'URL';
+                img.className = 'image';
+                
+                const captionDiv = document.createElement('div');
+                captionDiv.className = 'scp-image-caption';
+                captionDiv.innerHTML = '<p>描述（图片可存站点附件区）</p>';
+                
+                imageBlock.appendChild(img);
+                imageBlock.appendChild(captionDiv);
+                range.deleteContents();
+                range.insertNode(imageBlock);
+                
+                // 图片后添加空段落
+                const p = document.createElement('p');
+                p.innerHTML = '&nbsp;';
+                imageBlock.parentNode.insertBefore(p, imageBlock.nextSibling);
+                range.setStart(p, 0);
+                range.setEnd(p, 0);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            // 打开链接编辑弹窗（编辑现有链接）
+            function openLinkModal(linkElement) {
+                // 编辑现有链接时，保存当前光标范围
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    savedSelectionRange = selection.getRangeAt(0).cloneRange();
+                }
+                
+                currentLinkElement = linkElement;
+                linkModalTitle.textContent = '修改链接';
+                
+                // 解析现有链接信息，填充到表单
+                const linkHref = linkElement.getAttribute('href');
+                const linkText = linkElement.textContent.trim();
+                const isBlankTarget = linkElement.getAttribute('target') === '_blank';
+                
+                // 判断链接类型并设置表单
+                if (linkHref.startsWith('http')) {
+                    // 外部链接（普通或新窗口）
+                    linkTypeSelect.value = isBlankTarget ? 'blank' : 'normal';
+                } else if (linkHref.startsWith('/')) {
+                    // 内部路径
+                    if (linkText === linkHref.slice(1)) {
+                        // 文本等于路径（无文本类型）
+                        linkTypeSelect.value = 'internal';
+                    } else {
+                        // 文本自定义（带文本类型）
+                        linkTypeSelect.value = 'internal-text';
+                    }
+                } else {
+                    // 默认按普通链接处理
+                    linkTypeSelect.value = 'normal';
+                }
+                
+                // 填充表单值
+                linkUrlInput.value = linkHref;
+                linkTextInput.value = linkText;
+                
+                // 更新输入框提示和显示状态
+                updateLinkInputPlaceholders();
+                if (linkTypeSelect.value === 'internal') {
+                    linkTextGroup.classList.add('hidden');
+                } else {
+                    linkTextGroup.classList.remove('hidden');
+                }
+                
+                // 显示弹窗并聚焦URL输入框
+                openModal(linkModal);
+                linkUrlInput.focus();
+                linkUrlInput.select();
+            }
+            
+            // 创建链接HTML
+            function createLinkHtml(type, url, text) {
+                switch (type) {
+                    case 'blank':
+                        // 新窗口链接：<a href="url" target="_blank">text</a>
+                        return `<a href="${escapeHtml(url)}" target="_blank">${escapeHtml(text)}</a>`;
+                    case 'internal':
+                        // 内部路径（无文本）：<a href="/path">path</a>
+                        const cleanPath = url.startsWith('/') ? url : `/${url}`;
+                        return `<a href="${escapeHtml(cleanPath)}">${escapeHtml(text)}</a>`;
+                    case 'internal-text':
+                        // 内部路径（带文本）：<a href="/path">text</a>
+                        const fullPath = url.startsWith('/') ? url : `/${url}`;
+                        return `<a href="${escapeHtml(fullPath)}">${escapeHtml(text)}</a>`;
+                    default:
+                        // 普通链接：<a href="url">text</a>
+                        return `<a href="${escapeHtml(url)}">${escapeHtml(text)}</a>`;
+                }
+            }
+            
+            // 更新链接输入框提示文本
+            function updateLinkInputPlaceholders() {
+                const selectedType = linkTypeSelect.value;
+                switch (selectedType) {
+                    case 'normal':
+                        linkUrlInput.placeholder = '例如：https://lostmedia.wikidot.com/';
+                        break;
+                    case 'blank':
+                        linkUrlInput.placeholder = '例如：https://lostmedia.wikidot.com/（自动新窗口打开）';
+                        break;
+                    case 'internal':
+                    case 'internal-text':
+                        linkUrlInput.placeholder = '例如：/lostpage（站点内部路径，无需http）';
+                        break;
+                }
+            }
+            
+            // 重置链接弹窗表单
+            function resetLinkModalForm() {
+                linkTypeSelect.value = 'normal';
+                linkUrlInput.value = '';
+                linkTextInput.value = '';
+                linkTextGroup.classList.remove('hidden');
+                updateLinkInputPlaceholders();
+            }
+            
+            // HTML转义（防止XSS和语法冲突）
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+            
+            // 更新代码输出
+            function updateCodeOutput() {
+                let html = editor.innerHTML;
+                let wikiCode = convertHtmlToWiki(html);
+                
+                // 处理换行和空格
+                wikiCode = wikiCode.replace(/\r\n/g, '\n')
+                                  .replace(/\n{3,}/g, '\n\n')
+                                  .replace(/^ +/gm, '')
+                                  .trim();
+                
+                codeOutput.value = wikiCode;
+            }
+            
+            // HTML转wiki语法
+            function convertHtmlToWiki(html) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // 1. 处理图片块
+                tempDiv.querySelectorAll('.scp-image-block').forEach(block => {
+                    const img = block.querySelector('img');
+                    const url = img ? img.src || 'URL' : 'URL';
+                    const caption = block.querySelector('.scp-image-caption p')?.textContent || '';
+                    block.outerHTML = `[[include component:image-block\n|name=${url}\n|caption=${caption}\n]]`;
+                });
+                
+                // 2. 处理链接
+                tempDiv.querySelectorAll('a').forEach(link => {
+                    const href = link.getAttribute('href') || '';
+                    const text = link.textContent.trim() || href;
+                    const isBlank = link.getAttribute('target') === '_blank';
+                    let wikiLink = '';
+                    
+                    if (href.startsWith('http')) {
+                        // 外部链接：[url 文本] 或 [*url 文本]
+                        wikiLink = isBlank 
+                            ? `[*${href} ${text}]` 
+                            : `[${href} ${text}]`;
+                    } else if (href.startsWith('/')) {
+                        // 内部路径：[[[path]]] 或 [[[path|文本]]]
+                        const path = href.slice(1); // 去除开头的/
+                        if (text === path) {
+                            // 文本等于路径（无文本类型）
+                            wikiLink = `[[[${path}]]]`;
+                        } else {
+                            // 文本自定义（带文本类型）
+                            wikiLink = `[[[${path}|${text}]]]`;
+                        }
+                    } else {
+                        // 其他链接按普通格式处理
+                        wikiLink = `[${href} ${text}]`;
+                    }
+                    
+                    link.outerHTML = wikiLink;
+                });
+                
+                // 3. 处理格式标记
+                [
+                    ['strong', '**', '**'],
+                    ['em', '//', '//'],
+                    ['u', '__', '__'],
+                    ['code', '{{', '}}'],
+                    ['h1', '\n+ ', '\n'],
+                    ['h2', '\n++ ', '\n'],
+                    ['h3', '\n+++ ', '\n']
+                ].forEach(([tag, start, end]) => {
+                    tempDiv.querySelectorAll(tag).forEach(el => {
+                        el.outerHTML = start + el.textContent + end;
+                    });
+                });
+                
+                // 4. 处理列表
+                tempDiv.querySelectorAll('li').forEach(li => {
+                    li.outerHTML = '* ' + li.textContent + '\n';
+                });
+                
+                // 5. 处理段落
+                tempDiv.querySelectorAll('p').forEach(p => {
+                    const text = p.textContent.trim();
+                    p.outerHTML = text ? text + '\n' : '';
+                });
+                
+                // 清理空格
+                return tempDiv.textContent.replace(/\u00a0/g, ' ').replace(/  +/g, ' ');
+            }
+            
+            // 标准化换行
+            function normalizeLineBreaks(element) {
+                // 清理空段落
+                element.querySelectorAll('p').forEach(p => {
+                    if (p.textContent.trim() === '' && p.innerHTML.trim() !== '&nbsp;') {
+                        p.innerHTML = '&nbsp;';
+                    }
+                });
+            }
+            
+            // 重置编辑器
+            function resetEditor() {
+                editor.innerHTML = `
+                    <div class="scp-image-block block-right" style="width:300px;">
+                        <img src="URL" style="width:300px;" alt="URL" class="image">
+                        <div class="scp-image-caption">
+                            <p>描述（图片可存站点附件区）</p>
+                        </div>
+                    </div>
+                    
+                    <p><strong>失传媒体名</strong>（中文译名，如果有）是（简要描述）</p>
+                    
+                    <h1>描述</h1>
+                    <p>细致描述该失传媒体，可插入<a href="https://lostmedia.wikidot.com/">示例链接</a>补充说明</p>
+                    
+                    <h1>搜索历史</h1>
+                    <p>描述该失传媒体搜索过程，如果有（无需写发现过程）</p>
+                    
+                    <h1>获取状态</h1>
+                    <p>该失传媒体目前的找到情况、可获取性等，若该媒体已发现，则将大标题改为<strong>发现</strong></p>
+                    
+                    <h1>相关图片</h1>
+                    <p>插入该失传媒体的更多相关图片（如果有）</p>
+                    
+                    <h1>相关链接</h1>
+                    <ul>
+                        <li><a href="URL" target="_blank">Lost Media Wiki相关条目</a></li>
+                        <li><a href="URL" target="_blank">Lost Waves Wiki相关条目</a></li>
+                        <li><a href="URL" target="_blank">Lostwave's Finest Wiki 相关条目</a></li>
+                        <li><a href="URL" target="_blank">Lost Media Archive 相关条目</a></li>
+                        <li><a href="URL" target="_blank">以及更多，如贴吧、Reddit等</a></li>
+                    </ul>
+                `;
+            }
+            
+            // 显示状态消息
+            function showStatus(message, type = 'info') {
+                statusMessage.textContent = message;
+                statusMessage.className = `mt-4 py-2 px-4 rounded-md text-sm ${
+                    type === 'success' ? 'bg-green-100 text-green-800' : 
+                    type === 'error' ? 'bg-red-100 text-red-800' : 
+                    'bg-blue-100 text-blue-800'
+                }`;
+                
+                setTimeout(() => statusMessage.classList.add('hidden'), 3000);
+            }
+            
+            // 打开弹窗
+            function openModal(modal) {
+                modal.classList.add('active');
+                // 禁止编辑器焦点丢失时的格式问题
+                modal.querySelector('.modal-input, .modal-select').focus();
+            }
+            
+            // 关闭弹窗
+            function closeModal(modal) {
+                modal.classList.remove('active');
+                editor.focus();
+            }
+            
+            // 初始化链接输入框提示
+            updateLinkInputPlaceholders();
+        });
+    </script>
+</body>
+</html>
