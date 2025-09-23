@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>暗黑模式切换</title>
+    <script>
+        function getDarkModeState() {
+            return localStorage.getItem('darkMode') === 'true';
+        }
+
+        function updateIframeStyle(isDark) {
+            document.body.style.height = isDark ? '1px' : '0px';
+        }
+
+        window.addEventListener('load', () => {
+            const checkbox = document.querySelector('.checkbox');
+            const initialState = getDarkModeState();
+            
+            checkbox.checked = initialState;
+            updateIframeStyle(initialState);
+
+            checkbox.addEventListener('change', () => {
+                const isDark = checkbox.checked;
+                localStorage.setItem('darkMode', isDark);
+                updateIframeStyle(isDark);
+            });
+
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'darkMode') {
+                    const newState = e.newValue === 'true';
+                    checkbox.checked = newState;
+                    updateIframeStyle(newState);
+                }
+            });
+        });
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .dark-mode-button {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body style="height: 0px;">
+    <div class="dark-mode-button">
+        <input name="dark-mode" type="checkbox" class="checkbox" id="darkModeCheckbox">
+        <label for="darkModeCheckbox">暗黑模式</label>
+    </div>
+</body>
+</html>
