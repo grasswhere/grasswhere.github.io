@@ -2,7 +2,7 @@
 <html>
 <head>
     <script>
-        // 1. 提取当前iframe的ID（和你环境中的选择器逻辑一致）
+        // 1. 提取当前iframe的ID（用于精准定位自身）
         const id = location.href.split('/').pop();
         
         // 2. 状态映射：复选框状态 → iframe边框样式
@@ -14,14 +14,14 @@
         // 3. 从localStorage读取状态
         function getDarkModeState() {
             const saved = localStorage.getItem("dark-mode-status");
-            return saved ? saved : "off";
+            return saved ? saved : "off"; // 默认未勾选
         }
 
-        // 4. 核心：通过jQuery跨层级修改iframe的边框样式
+        // 4. 核心：通过父页面的jQuery修改当前iframe的边框样式（单层级用parent.$j）
         function updateIframeBorder(state) {
             try {
-                // 复用你提供的选择器逻辑：定位当前iframe
-                const $iframe = parent.parent.$j(
+                // 单层级iframe：直接用parent.$j定位自身（无需parent.parent）
+                const $iframe = parent.$j(
                     `iframe.html-block-iframe[src$="/${id}"]`
                 );
                 // 设置边框样式（触发父页面CSS检测）
@@ -65,7 +65,7 @@
         });
     </script>
     <style>
-        /* 确保复选框正常显示，不受边框影响 */
+        /* 确保复选框正常显示 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: sans-serif;
