@@ -1,66 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>暗黑模式切换</title>
     <script>
-        // 从localStorage读取状态
+        // 1. 提取当前iframe的ID（和你环境中的选择器逻辑一致）
+        const id = location.href.split('/').pop();
+        
+        // 2. 状态映射：复选框状态 → iframe边框样式
+        const darkModeMap = {
+            "off": "0",                     // 未勾选：无边框
+            "on": "1px solid transparent"   // 勾选：1px透明边框（视觉无感知）
+        };
+
+        // 3. 从localStorage读取状态
         function getDarkModeState() {
-            return localStorage.getItem('darkMode') === 'true';
+            const saved = localStorage.getItem("dark-mode-status");
+            return saved ? saved : "off";
         }
 
-        // 更新iframe样式传递状态（用边框代替高度，不影响可见性）
-        function updateIframeStyle(isDark) {
-            // 关键：用透明边框作为状态标记（勾选时添加1px透明上边框）
-            document.documentElement.style.borderTop = isDark 
-                ? '1px solid transparent'  // 勾选状态：有1px透明边框
-                : '0';                     // 未勾选状态：无边框
+        // 4. 核心：通过jQuery跨层级修改iframe的边框样式
+        function updateIframeBorder(state) {
+            try {
+                // 复用你提供的选择器逻辑：定位当前iframe
+                const $iframe = parent.parent.$j(
+                    `iframe.html-block-iframe[src$="/${id}"]`
+                );
+                // 设置边框样式（触发父页面CSS检测）
+                $iframe.css("border", darkModeMap[state]);
+            } catch (e) {
+                console.log("更新iframe边框失败:", e);
+            }
         }
 
-        window.addEventListener('load', () => {
-            const checkbox = document.querySelector('.checkbox');
+        // 5. 设置状态：同步localStorage + 更新边框
+        function setDarkModeState(state) {
+            localStorage.setItem("dark-mode-status", state);
+            updateIframeBorder(state);
+            document.body.dataset.darkMode = state; // 内部状态同步
+        }
+
+        // 6. 页面加载初始化
+        window.addEventListener("load", () => {
+            const checkbox = document.querySelector(".checkbox");
             const initialState = getDarkModeState();
             
             // 同步复选框状态
-            checkbox.checked = initialState;
-            // 初始设置iframe样式
-            updateIframeStyle(initialState);
+            checkbox.checked = initialState === "on";
+            // 初始设置边框样式
+            updateIframeBorder(initialState);
 
-            // 监听复选框变化
-            checkbox.addEventListener('change', () => {
-                const isDark = checkbox.checked;
-                localStorage.setItem('darkMode', isDark);
-                updateIframeStyle(isDark);
+            // 7. 监听复选框变化
+            checkbox.addEventListener("change", () => {
+                const newState = checkbox.checked ? "on" : "off";
+                setDarkModeState(newState);
             });
 
-            // 同步其他标签页的状态
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'darkMode') {
-                    const newState = e.newValue === 'true';
-                    checkbox.checked = newState;
-                    updateIframeStyle(newState);
+            // 8. 同步其他标签页状态
+            window.addEventListener("storage", (e) => {
+                if (e.key === "dark-mode-status") {
+                    const newState = e.newValue;
+                    setDarkModeState(newState);
+                    checkbox.checked = newState === "on";
                 }
             });
         });
     </script>
     <style>
-        /* 确保复选框可见且美观 */
+        /* 确保复选框正常显示，不受边框影响 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0;
-            padding: 8px 12px;
             font-family: sans-serif;
-        }
-        .dark-mode-button {
             display: flex;
             align-items: center;
             gap: 8px;
+            padding: 8px 12px;
         }
-        .checkbox {
-            width: 16px;
-            height: 16px;
-        }
+        .checkbox { width: 16px; height: 16px; cursor: pointer; }
+        label { cursor: pointer; }
     </style>
 </head>
-<body>
+<body data-dark-mode="">
     <div class="dark-mode-button">
         <input name="dark-mode" type="checkbox" class="checkbox" id="darkModeCheckbox">
         <label for="darkModeCheckbox">启用暗黑模式</label>
