@@ -3,27 +3,36 @@
 <head>
     <title>暗黑模式切换</title>
     <script>
+        // 从localStorage读取状态
         function getDarkModeState() {
             return localStorage.getItem('darkMode') === 'true';
         }
 
+        // 更新iframe样式传递状态（用边框代替高度，不影响可见性）
         function updateIframeStyle(isDark) {
-            document.body.style.height = isDark ? '1px' : '0px';
+            // 关键：用透明边框作为状态标记（勾选时添加1px透明上边框）
+            document.documentElement.style.borderTop = isDark 
+                ? '1px solid transparent'  // 勾选状态：有1px透明边框
+                : '0';                     // 未勾选状态：无边框
         }
 
         window.addEventListener('load', () => {
             const checkbox = document.querySelector('.checkbox');
             const initialState = getDarkModeState();
             
+            // 同步复选框状态
             checkbox.checked = initialState;
+            // 初始设置iframe样式
             updateIframeStyle(initialState);
 
+            // 监听复选框变化
             checkbox.addEventListener('change', () => {
                 const isDark = checkbox.checked;
                 localStorage.setItem('darkMode', isDark);
                 updateIframeStyle(isDark);
             });
 
+            // 同步其他标签页的状态
             window.addEventListener('storage', (e) => {
                 if (e.key === 'darkMode') {
                     const newState = e.newValue === 'true';
@@ -34,21 +43,27 @@
         });
     </script>
     <style>
+        /* 确保复选框可见且美观 */
         body {
             margin: 0;
-            padding: 0;
-            overflow: hidden;
+            padding: 8px 12px;
+            font-family: sans-serif;
         }
         .dark-mode-button {
-            position: relative;
-            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox {
+            width: 16px;
+            height: 16px;
         }
     </style>
 </head>
-<body style="height: 0px;">
+<body>
     <div class="dark-mode-button">
         <input name="dark-mode" type="checkbox" class="checkbox" id="darkModeCheckbox">
-        <label for="darkModeCheckbox">暗黑模式</label>
+        <label for="darkModeCheckbox">启用暗黑模式</label>
     </div>
 </body>
 </html>
