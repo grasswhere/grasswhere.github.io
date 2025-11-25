@@ -1,0 +1,417 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<style>
+
+* {
+    margin: 0 ;
+    padding: 0 ;
+    box-sizing: border-box ;
+}
+
+body {
+    font-family: Arial, sans-serif ;
+    color: #000 ;
+    display: flex ;
+    justify-content: center ;
+    align-items: flex-start ;
+    min-height: 100vh ;
+    margin: 0 ;
+    padding: 20px ;
+}
+
+.search-container {
+    text-align: center ;
+    width: 100% ;
+    max-width: 800px ;
+    background-color: #fff ;
+    padding: 20px ;
+    border-radius: 8px ;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) ;
+    margin-top: 20px ;
+}
+
+h1 {
+    margin-bottom: 20px ;
+    font-size: 2rem ;
+    color: #000 ;
+}
+
+input[type="text"] {
+    width: 80% ;
+    padding: 10px ;
+    margin-bottom: 20px ;
+    border: 2px solid #333 ;
+    border-radius: 4px ;
+    background-color: #fff ;
+    color: #000 ;
+}
+
+input[type="text"]:focus {
+    outline: none ;
+    border-color: #000 ;
+}
+
+button {
+    padding: 10px 20px ;
+    background-color: #000 ;
+    color: #fff ;
+    border: none ;
+    border-radius: 4px ;
+    cursor: pointer ;
+}
+
+button:hover {
+    background-color: #333 ;
+}
+
+.results-container {
+    margin-top: 20px ;
+    text-align: left ;
+    max-width: 800px ;
+    width: 100% ;
+}
+
+.result-item {
+    background-color: #f5f5f5 ;
+    margin: 10px 0 ;
+    padding: 15px ;
+    border-radius: 6px ;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) ;
+}
+
+.result-item h2 a {
+    color: #000 ;
+    text-decoration: none ;
+}
+
+.result-item h2 a:hover {
+    text-decoration: underline ;
+}
+
+.result-item p {
+    margin-top: 10px ;
+    color: #333 ;
+}
+
+small {
+    display: block ;
+    margin-top: 10px ;
+    font-size: 0.9rem ;
+    color: #666 ;
+}
+
+.pagination {
+    display: flex ;
+    justify-content: center ;
+    margin-top: 20px ;
+}
+
+.pagination button {
+    padding: 10px 15px ;
+    margin: 0 5px ;
+    background-color: #000 ;
+    color: #fff ;
+    border: 1px solid #333 ;
+    border-radius: 4px ;
+    cursor: pointer ;
+}
+
+.pagination button:hover {
+    background-color: #333 ;
+}
+
+.pagination .disabled {
+    background-color: #ccc ;
+    cursor: not-allowed ;
+}
+
+#search-results {
+    display: block ;
+    max-height: 100vh;
+    overflow-y: auto;
+
+}
+
+.page-info {
+    text-align: center ;
+    color: #333 ;
+    margin-top: 10px ;
+}
+
+.page-jump {
+    margin-top: 20px ;
+    text-align: center ;
+}
+
+.page-jump input {
+    width: 50px ;
+    padding: 5px ;
+    margin-right: 5px ;
+}
+
+.page-jump button {
+    padding: 5px 10px ;
+    background-color: #000 ;
+    color: #fff ;
+    border: none ;
+    border-radius: 4px ;
+    cursor: pointer ;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        padding: 15px ;
+    }
+
+    h1 {
+        font-size: 1.5rem ;
+    }
+
+    input[type="text"] {
+        width: 90% ;
+    }
+
+    .pagination button {
+        padding: 8px 12px ;
+    }
+
+    .pagination button:hover {
+        background-color: #444 ;
+    }
+
+    .page-jump input {
+        width: 40px ;
+    }
+
+    .page-jump button {
+        padding: 4px 8px ;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px ;
+    }
+
+    .search-container {
+        padding: 10px ;
+    }
+
+    h1 {
+        font-size: 1.2rem ;
+    }
+
+    input[type="text"] {
+        width: 100% ;
+    }
+}
+
+</style>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="输入关键词进行搜索...（按时间time:>=yyyy-mm-dd 或 time:<=yyyy-mm-dd）">
+        <button id="search-btn">搜索</button>
+        <div id="search-results" class="results-container"></div>
+        <div id="pagination" class="pagination"></div>
+        <div id="page-info" class="page-info"></div>
+        <div id="page-jump" class="page-jump">
+            跳转到第 <input type="number" id="jump-page-input" min="1" placeholder="页码"> 页
+            <button id="jump-btn">跳转</button>
+        </div>
+    </div>
+
+    <script>
+let currentPage = 1;
+let totalPages = 1;
+let currentQuery = '';
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+
+    return `${year}年${padZero(month)}月${padZero(day)}日 ${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+}
+
+function padZero(num) {
+    return num < 10 ? '0' + num : num;
+}
+
+function highlightText(text, query) {
+    if (!query) return text;
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    return text.replace(regex, '<span style="font-weight: bold; background-color: yellow;">$1</span>');
+}
+
+document.getElementById('search-btn').addEventListener('click', function() {
+    let query = document.getElementById('search-input').value.trim();
+    if (query === '') {
+        alert('请输入搜索内容');
+        return;
+    }
+
+    const timePattern = /time:(>=|<=)?(\d{4}-\d{2}-\d{2})/;
+    let timeQuery = '';
+    let searchQuery = query;
+
+    if (timePattern.test(query)) {
+        timeQuery = query.match(timePattern)[0];
+        searchQuery = query.replace(timePattern, '').trim();
+    }
+
+    currentQuery = searchQuery;
+    currentPage = 1;
+    fetchSearchResults(searchQuery, timeQuery);
+});
+
+function fetchSearchResults(query, timeQuery) {
+    document.getElementById('search-results').innerHTML = '<p>加载中...</p>';
+    document.getElementById('pagination').innerHTML = '';
+    document.getElementById('page-info').innerHTML = '';
+
+    let url = `https://wikit.unitreaty.org/wikidot/search.php?wiki=lostmedia&q=${encodeURIComponent(query)}&page=${currentPage}`;
+    if (timeQuery) {
+        url += `&time=${encodeURIComponent(timeQuery)}`;
+    }
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error || !data.results) {
+                document.getElementById('search-results').innerHTML = '<p>没有找到结果</p>';
+                document.getElementById('pagination').innerHTML = '';
+                document.getElementById('page-info').innerHTML = '';
+                return;
+            }
+
+            totalPages = data.total_pages || 1;
+            displayResults(data.results);
+            setupPagination();
+            displayPageInfo();
+        })
+        .catch(error => {
+            console.error('Error fetching search results:', error);
+            if (error.message.includes('Failed to fetch')) {
+                document.getElementById('search-results').innerHTML = '<p>网络连接失败，请检查网络设置</p>';
+            } else if (error.message.includes('HTTP error')) {
+                document.getElementById('search-results').innerHTML = `<p>服务器错误：${error.message.split(':')[1].trim()}</p>`;
+            } else {
+                document.getElementById('search-results').innerHTML = '<p>搜索失败，请稍后再试</p>';
+            }
+        });
+}
+
+function displayResults(results) {
+    let resultsHTML = '';
+
+    if (results.length > 0) {
+        results.forEach(result => {
+            const formattedDate = formatDate(result.lastmod);
+            const highlightedTitle = highlightText(result.title, currentQuery);
+            const highlightedContent = highlightText(result.content, currentQuery);
+            
+            resultsHTML += `
+                <div class="result-item">
+                    <h2><a href="${result.url}" target="_blank">${highlightedTitle}</a></h2>
+                    <p>${highlightedContent}</p>
+                    <p><small>更新于: ${formattedDate}</small></p>
+                </div>
+            `;
+        });
+    } else {
+        resultsHTML = '<p>没有找到相关内容</p>';
+    }
+
+    document.getElementById('search-results').innerHTML = resultsHTML;
+}
+
+function setupPagination() {
+    let paginationHTML = '';
+
+    paginationHTML += `
+        <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="changePage(currentPage - 1)">上一页</button>
+    `;
+
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">${i}</button>
+        `;
+    }
+
+    paginationHTML += `
+        <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="changePage(currentPage + 1)">下一页</button>
+    `;
+
+    document.getElementById('pagination').innerHTML = paginationHTML;
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    
+    let query = document.getElementById('search-input').value.trim();
+    const timePattern = /time:(>=|<=)?(\d{4}-\d{2}-\d{2})/;
+    let timeQuery = timePattern.test(query) ? query.match(timePattern)[0] : '';
+    let searchQuery = query.replace(timePattern, '').trim();
+
+    fetchSearchResults(searchQuery, timeQuery);
+}
+
+function displayPageInfo() {
+    const pageInfoHTML = `第 ${currentPage} 页，共 ${totalPages} 页`;
+    document.getElementById('page-info').innerHTML = pageInfoHTML;
+}
+
+document.getElementById('jump-btn').addEventListener('click', function() {
+    const jumpPage = parseInt(document.getElementById('jump-page-input').value);
+    if (isNaN(jumpPage) || jumpPage < 1 || jumpPage > totalPages) {
+        alert(`请输入有效的页码（1-${totalPages}）。`);
+        return;
+    }
+    changePage(jumpPage);
+});
+
+document.getElementById('search-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('search-btn').click();
+    }
+});
+
+const style = document.createElement('style');
+style.textContent = `
+    .pagination-btn.active {
+        background-color: #555;
+        font-weight: bold;
+    }
+    .result-item h2 a span {
+        color: #000 ;
+    }
+    .result-item p span {
+        color: #333 ;
+    }
+`;
+document.head.appendChild(style);
+    </script>
+
+</body>
+</html>
